@@ -77,11 +77,17 @@ const weddingSchema = new mongoose.Schema(
       trim: true,
       maxlength: [150, "Invitation heading cannot exceed 150 characters"],
     },
+    personalGuestGreeting: {
+      type: String,
+      default: "Dear {{guestName}},",
+      trim: true,
+      maxlength: [200, "Personal guest greeting cannot exceed 200 characters"],
+    },
     invitationMessage: {
       type: String,
       default: "",
       trim: true,
-      maxlength: [2000, "Invitation message cannot exceed 2000 characters"],
+      maxlength: [3000, "Invitation message cannot exceed 3000 characters"],
     },
     footerMessage: {
       type: String,

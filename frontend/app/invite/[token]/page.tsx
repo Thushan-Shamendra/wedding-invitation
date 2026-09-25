@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { guestService } from "@/services/guestService";
 import { rsvpService } from "@/services/rsvpService";
-import { PublicGuestInvitation, PublicRSVP } from "@/types";
+import { weddingService } from "@/services/weddingService";
+import { PublicGuestInvitation, PublicRSVP, Wedding } from "@/types";
 import {
   Sparkles,
   Users,
@@ -19,6 +20,7 @@ import {
   Check,
   Edit3,
   CalendarCheck2,
+  Calendar,
 } from "lucide-react";
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
@@ -30,6 +32,7 @@ export default function PublicInvitationPage() {
 
   const [loading, setLoading] = useState(true);
   const [guest, setGuest] = useState<PublicGuestInvitation | null>(null);
+  const [wedding, setWedding] = useState<Wedding | null>(null);
   const [notFound, setNotFound] = useState(false);
 
   // Form states
@@ -62,12 +65,16 @@ export default function PublicInvitationPage() {
     const fetchInvitationAndRsvp = async () => {
       try {
         setLoading(true);
-        const [guestData, rsvpData] = await Promise.all([
+        const [guestData, rsvpData, weddingData] = await Promise.all([
           guestService.getGuestByInvitationToken(token),
           rsvpService.getRSVPByInvitationToken(token).catch(() => null),
+          weddingService.getWeddingDetails().catch(() => null),
         ]);
 
         setGuest(guestData);
+        if (weddingData) {
+          setWedding(weddingData);
+        }
 
         if (rsvpData) {
           setHasPreviousRsvp(true);
@@ -194,6 +201,31 @@ export default function PublicInvitationPage() {
     })
   );
 
+  // Dynamic invitation message texts from MongoDB
+  const displayedGreeting = useMemo(() => {
+    if (!guest) return "";
+    const template =
+      wedding?.personalGuestGreeting?.trim() || "Dear {{guestName}},";
+    return template.replace(/\{\{\s*guestName\s*\}\}/g, guest.name);
+  }, [wedding?.personalGuestGreeting, guest]);
+
+  const displayedHeading =
+    wedding?.invitationHeading?.trim() || "We're Getting Married";
+
+  const displayedMessage =
+    wedding?.invitationMessage?.trim() ||
+    "You are warmly invited to celebrate our special wedding day with us.";
+
+  const coupleNames = useMemo(() => {
+    if (!wedding) return "";
+    const b = wedding.brideName?.trim();
+    const g = wedding.groomName?.trim();
+    if (b && g) return `${b} & ${g}`;
+    return b || g || "";
+  }, [wedding]);
+
+  const displayedFooterMessage = wedding?.footerMessage?.trim() || "";
+
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-center py-10 px-4 sm:px-6 lg:px-8 bg-[#F8F6F1] text-[#26231F]">
       <div className="w-full max-w-xl bg-white rounded-3xl border border-[#E8E3DA] p-6 sm:p-10 lg:p-12 shadow-sm relative overflow-hidden space-y-8">
@@ -208,24 +240,46 @@ export default function PublicInvitationPage() {
 
           <div>
             <span className="text-[11px] uppercase tracking-widest font-semibold text-[#8C703E]">
-              Wedding Invitation & RSVP
+              {displayedHeading}
             </span>
             <h1 className="text-3xl sm:text-4xl font-serif font-medium text-[#26231F] tracking-tight mt-1">
-              Dear {guest.name},
+              {displayedGreeting}
             </h1>
           </div>
 
-          {/* Personalized Message from couple if present */}
+          {/* Couple Names & Date */}
+          {(coupleNames || wedding?.weddingDate) && (
+            <div className="space-y-0.5">
+              {coupleNames && (
+                <p className="text-base font-serif font-semibold text-[#26231F]">
+                  {coupleNames}
+                </p>
+              )}
+              {wedding?.weddingDate && (
+                <p className="text-xs text-[#8C703E] font-medium flex items-center justify-center gap-1">
+                  <Calendar className="w-3.5 h-3.5 text-[#C9A96E]" />
+                  <span>{wedding.weddingDate}</span>
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Formal Invitation Message from MongoDB */}
+          <div className="bg-[#FAF8F5] rounded-2xl border border-[#E8E3DA] p-5 text-sm text-[#746E66] leading-relaxed whitespace-pre-line text-center">
+            {displayedMessage}
+          </div>
+
+          {/* Personalized Note for this specific guest if present */}
           {guest.personalMessage && (
-            <div className="bg-[#FAF8F5] rounded-2xl border border-[#E8E3DA] p-5 text-sm text-[#746E66] italic leading-relaxed text-left">
+            <div className="bg-white rounded-2xl border border-[#E8E3DA] p-4 text-xs text-[#746E66] italic leading-relaxed text-left">
+              <span className="text-[10px] uppercase font-bold text-[#8C703E] not-italic block mb-1">
+                Personal Note from Couple:
+              </span>
               "{guest.personalMessage}"
             </div>
           )}
 
-          <p className="text-sm text-[#746E66] leading-relaxed">
-            You are warmly invited to celebrate our special wedding day with us.
-          </p>
-
+          {/* Guest Allocation Pill */}
           <div className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-[#FAF8F5] border border-[#E8E3DA] text-xs font-medium text-[#26231F]">
             <Users className="w-4 h-4 text-[#C9A96E]" />
             <span>
@@ -235,6 +289,13 @@ export default function PublicInvitationPage() {
               </strong>
             </span>
           </div>
+
+          {/* Footer Message / Closing */}
+          {displayedFooterMessage && (
+            <p className="text-xs font-serif font-medium text-[#746E66] italic pt-1">
+              {displayedFooterMessage}
+            </p>
+          )}
         </div>
 
         {/* Decorative Divider */}

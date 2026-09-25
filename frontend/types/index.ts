@@ -42,6 +42,7 @@ export interface Wedding {
   contactGroom: string;
   contactCoordinator: string;
   invitationHeading?: string;
+  personalGuestGreeting?: string;
   invitationMessage?: string;
   footerMessage?: string;
   websiteStatus?: "draft" | "published";

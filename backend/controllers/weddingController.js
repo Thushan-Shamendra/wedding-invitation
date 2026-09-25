@@ -72,6 +72,7 @@ const updateWeddingDetails = async (req, res) => {
       "contactGroom",
       "contactCoordinator",
       "invitationHeading",
+      "personalGuestGreeting",
       "invitationMessage",
       "footerMessage",
       "websiteStatus",
@@ -128,6 +129,41 @@ const updateWeddingDetails = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Groom description cannot exceed 2000 characters.",
+      });
+    }
+
+    // Invitation message validation
+    if (req.body.invitationHeading && req.body.invitationHeading.length > 150) {
+      return res.status(400).json({
+        success: false,
+        message: "Invitation heading cannot exceed 150 characters.",
+      });
+    }
+
+    if (
+      req.body.personalGuestGreeting &&
+      req.body.personalGuestGreeting.length > 200
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Personal guest greeting cannot exceed 200 characters.",
+      });
+    }
+
+    if (
+      req.body.invitationMessage &&
+      req.body.invitationMessage.length > 3000
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invitation message cannot exceed 3000 characters.",
+      });
+    }
+
+    if (req.body.footerMessage && req.body.footerMessage.length > 500) {
+      return res.status(400).json({
+        success: false,
+        message: "Footer message cannot exceed 500 characters.",
       });
     }
 

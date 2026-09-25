@@ -311,6 +311,7 @@ export default function AdminDashboardPage() {
                   { label: "Configure Wedding & Couple Details", href: "/admin/wedding-details" },
                   { label: "Set Ceremony & Reception Venues", href: "/admin/venue" },
                   { label: "Add Wedding Schedule Events", href: "/admin/schedule" },
+                  { label: "Customize Invitation Message", href: "/admin/invitation-message" },
                   { label: "Add Wedding Guests", href: "/admin/guests" },
                   { label: "Customize Theme & Background Music", href: "/admin/theme" },
                 ].map((item, idx) => (

@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { StatCard } from "@/components/admin/StatCard";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { EmptyState } from "@/components/admin/EmptyState";
+import { guestService } from "@/services/guestService";
 import {
   Users,
   UserCheck,
@@ -21,13 +22,26 @@ import {
 } from "lucide-react";
 
 export default function AdminDashboardPage() {
-  // Safe placeholder state for statistics until backend models are populated
-  const [stats] = useState({
+  const [stats, setStats] = useState({
     totalGuests: 0,
     attending: 0,
     declined: 0,
     pending: 0,
   });
+
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const liveStats = await guestService.getGuestStats();
+        setStats(liveStats);
+      } catch (err) {
+        console.error("Failed to load dashboard stats:", err);
+      }
+    };
+
+    loadStats();
+  }, []);
+
 
   // Recent RSVP responses state (empty initially)
   const [recentResponses] = useState<Array<{
@@ -288,7 +302,7 @@ export default function AdminDashboardPage() {
                   { label: "Configure Wedding & Couple Details", href: "/admin/wedding-details" },
                   { label: "Set Ceremony & Reception Venues", href: "/admin/venue" },
                   { label: "Add Wedding Schedule Events", href: "/admin/schedule" },
-                  { label: "Import or Add Guests List", href: "/admin/guests" },
+                  { label: "Add Wedding Guests", href: "/admin/guests" },
                   { label: "Customize Theme & Background Music", href: "/admin/theme" },
                 ].map((item, idx) => (
                   <Link

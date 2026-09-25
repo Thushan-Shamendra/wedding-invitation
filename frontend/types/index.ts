@@ -80,7 +80,7 @@ export interface Wedding {
 }
 
 export interface Guest {
-  _id: string;
+  _id?: string;
   name: string;
   email?: string;
   phone?: string;
@@ -91,6 +91,22 @@ export interface Guest {
   createdAt?: string;
   updatedAt?: string;
 }
+
+export interface GuestStats {
+  totalGuests: number;
+  attending: number;
+  declined: number;
+  pending: number;
+}
+
+export interface PublicGuestInvitation {
+  name: string;
+  personalMessage?: string;
+  maximumGuests: number;
+  invitationToken: string;
+  rsvpStatus: "pending" | "attending" | "declined";
+}
+
 
 export interface RSVP {
   _id: string;

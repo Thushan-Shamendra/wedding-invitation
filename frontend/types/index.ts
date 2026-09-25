@@ -110,15 +110,37 @@ export interface PublicGuestInvitation {
 
 export interface RSVP {
   _id: string;
-  guestId?: string | Guest;
-  guestName: string;
-  phone?: string;
-  email?: string;
-  status: "attending" | "declined" | "pending";
-  guestCount: number;
+  guest: Guest;
+  attendanceStatus: "attending" | "declined";
+  numberOfGuests: number;
   mealPreference?: string;
   message?: string;
-  responseDate: string;
+  submittedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface PublicRSVP {
+  attendanceStatus: "attending" | "declined";
+  numberOfGuests: number;
+  mealPreference?: string;
+  message?: string;
+  submittedAt: string;
+}
+
+export interface RSVPSubmitData {
+  attendanceStatus: "attending" | "declined";
+  numberOfGuests?: number;
+  mealPreference?: string;
+  message?: string;
+}
+
+export interface RSVPStats {
+  totalResponses: number;
+  attendingResponses: number;
+  declinedResponses: number;
+  totalGuestsAttending: number;
+  pendingGuests: number;
 }
 
 export interface ScheduleEvent {

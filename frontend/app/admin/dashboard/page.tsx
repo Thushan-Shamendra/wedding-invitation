@@ -7,6 +7,8 @@ import { StatCard } from "@/components/admin/StatCard";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { EmptyState } from "@/components/admin/EmptyState";
 import { guestService } from "@/services/guestService";
+import { rsvpService } from "@/services/rsvpService";
+import { RSVP } from "@/types";
 import {
   Users,
   UserCheck,
@@ -29,28 +31,24 @@ export default function AdminDashboardPage() {
     pending: 0,
   });
 
+  const [recentResponses, setRecentResponses] = useState<RSVP[]>([]);
+
   useEffect(() => {
-    const loadStats = async () => {
+    const loadDashboardData = async () => {
       try {
-        const liveStats = await guestService.getGuestStats();
+        const [liveStats, responses] = await Promise.all([
+          guestService.getGuestStats(),
+          rsvpService.getRSVPResponses({ limit: 5 }).catch(() => []),
+        ]);
         setStats(liveStats);
+        setRecentResponses(responses);
       } catch (err) {
         console.error("Failed to load dashboard stats:", err);
       }
     };
 
-    loadStats();
+    loadDashboardData();
   }, []);
-
-
-  // Recent RSVP responses state (empty initially)
-  const [recentResponses] = useState<Array<{
-    id: string;
-    guestName: string;
-    status: "attending" | "declined" | "pending";
-    guests: number;
-    responseDate: string;
-  }>>([]);
 
   const quickActions = [
     {
@@ -170,18 +168,29 @@ export default function AdminDashboardPage() {
                     </thead>
                     <tbody className="divide-y divide-[#E8E3DA]/60">
                       {recentResponses.map((item) => (
-                        <tr key={item.id} className="hover:bg-[#F8F6F1]/50">
+                        <tr key={item._id} className="hover:bg-[#F8F6F1]/50">
                           <td className="py-3 px-4 font-medium text-[#26231F]">
-                            {item.guestName}
+                            {item.guest?.name || "Guest"}
                           </td>
                           <td className="py-3 px-4">
-                            <StatusBadge status={item.status} />
+                            <StatusBadge status={item.attendanceStatus} />
                           </td>
                           <td className="py-3 px-4 text-[#746E66]">
-                            {item.guests}
+                            {item.attendanceStatus === "attending"
+                              ? item.numberOfGuests
+                              : 0}
                           </td>
                           <td className="py-3 px-4 text-right text-xs text-[#746E66]">
-                            {item.responseDate}
+                            {item.submittedAt
+                              ? new Date(item.submittedAt).toLocaleDateString(
+                                  "en-US",
+                                  {
+                                    month: "short",
+                                    day: "numeric",
+                                    year: "numeric",
+                                  }
+                                )
+                              : "—"}
                           </td>
                         </tr>
                       ))}

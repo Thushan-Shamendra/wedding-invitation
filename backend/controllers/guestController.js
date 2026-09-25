@@ -1,5 +1,6 @@
 const crypto = require("crypto");
 const Guest = require("../models/Guest");
+const RSVP = require("../models/RSVP");
 
 // Helper to generate a unique readable invitation token
 const generateInvitationToken = async (name) => {
@@ -309,6 +310,7 @@ const deleteGuest = async (req, res) => {
     }
 
     await Guest.findByIdAndDelete(req.params.id);
+    await RSVP.deleteMany({ guest: req.params.id });
 
     res.json({
       success: true,

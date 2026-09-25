@@ -28,9 +28,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/wedding", weddingRoutes);
 app.use("/api/schedule", require("./routes/scheduleRoutes"));
 app.use("/api/guests", require("./routes/guestRoutes"));
-
-
-
+app.use("/api/rsvp", require("./routes/rsvpRoutes"));
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {

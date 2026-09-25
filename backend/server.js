@@ -10,6 +10,7 @@ connectDB();
 const app = express();
 
 const authRoutes = require("./routes/authRoutes");
+const weddingRoutes = require("./routes/weddingRoutes");
 
 app.use(cors());
 app.use(express.json());
@@ -24,6 +25,8 @@ app.get("/", (req, res) => {
 
 // API Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/wedding", weddingRoutes);
+
 
 
 const PORT = process.env.PORT || 5000;

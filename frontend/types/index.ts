@@ -29,36 +29,54 @@ export interface WeddingVenue {
 
 export interface Wedding {
   _id?: string;
-  title: string;
+  weddingTitle: string;
   brideName: string;
-  brideDescription?: string;
+  brideDescription: string;
   groomName: string;
-  groomDescription?: string;
+  groomDescription: string;
   weddingDate: string;
   startTime: string;
   endTime: string;
-  dressCode?: string;
-  brideContact?: string;
-  groomContact?: string;
-  coordinatorContact?: string;
-  ceremonyVenue?: WeddingVenue;
-  receptionVenue?: WeddingVenue;
+  dressCode: string;
+  contactBride: string;
+  contactGroom: string;
+  contactCoordinator: string;
   invitationHeading?: string;
-  personalGreeting?: string;
   invitationMessage?: string;
   footerMessage?: string;
+  websiteStatus?: "draft" | "published";
+  ceremonyVenueName?: string;
+  ceremonyAddress?: string;
+  ceremonyDate?: string;
+  ceremonyTime?: string;
+  ceremonyGoogleMapsUrl?: string;
+  ceremonyLatitude?: number | null;
+  ceremonyLongitude?: number | null;
+  ceremonyDescription?: string;
+  receptionVenueName?: string;
+  receptionAddress?: string;
+  receptionDate?: string;
+  receptionTime?: string;
+  receptionGoogleMapsUrl?: string;
+  receptionLatitude?: number | null;
+  receptionLongitude?: number | null;
+  receptionDescription?: string;
+  ceremonyVenue?: WeddingVenue;
+  receptionVenue?: WeddingVenue;
+
   primaryColor?: string;
   secondaryColor?: string;
   backgroundColor?: string;
   textColor?: string;
   headingFont?: string;
   bodyFont?: string;
-  themeStyle?: 'classic' | 'modern' | 'minimal' | 'luxury';
+  themeStyle?: "classic" | "modern" | "minimal" | "luxury";
   musicEnabled?: boolean;
   musicUrl?: string;
-  websitePublished?: boolean;
   rsvpEnabled?: boolean;
   personalizedInvitationsEnabled?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Guest {
@@ -69,7 +87,7 @@ export interface Guest {
   maximumGuests: number;
   personalMessage?: string;
   invitationToken: string;
-  rsvpStatus: 'pending' | 'attending' | 'declined';
+  rsvpStatus: "pending" | "attending" | "declined";
   createdAt?: string;
   updatedAt?: string;
 }
@@ -80,7 +98,7 @@ export interface RSVP {
   guestName: string;
   phone?: string;
   email?: string;
-  status: 'attending' | 'declined' | 'pending';
+  status: "attending" | "declined" | "pending";
   guestCount: number;
   mealPreference?: string;
   message?: string;

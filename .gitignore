@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.production
+
+# Keep example environment files
+!.env.example
+
+# Logs
+*.log
+
+# Build files
+dist/
+build/
+
+# OS
+.DS_Store
+Thumbs.db

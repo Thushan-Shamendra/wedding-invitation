@@ -106,9 +106,13 @@ export interface RSVP {
 }
 
 export interface ScheduleEvent {
-  _id: string;
-  name: string;
+  _id?: string;
+  eventName: string;
+  eventDate?: string;
   startTime: string;
-  description: string;
+  description?: string;
   order: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
+

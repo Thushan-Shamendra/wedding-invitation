@@ -313,7 +313,7 @@ export default function AdminDashboardPage() {
                   { label: "Add Wedding Schedule Events", href: "/admin/schedule" },
                   { label: "Customize Invitation Message", href: "/admin/invitation-message" },
                   { label: "Add Wedding Guests", href: "/admin/guests" },
-                  { label: "Customize Theme & Background Music", href: "/admin/theme" },
+                  { label: "Customize Wedding Theme", href: "/admin/theme" },
                 ].map((item, idx) => (
                   <Link
                     key={idx}

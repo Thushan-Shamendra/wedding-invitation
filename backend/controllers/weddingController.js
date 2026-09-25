@@ -25,6 +25,29 @@ const isValidUrl = (urlStr) => {
   }
 };
 
+// Helper to validate CSS Hex Color
+const isValidHexColor = (color) => {
+  if (!color || typeof color !== "string") return false;
+  return /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(color.trim());
+};
+
+const ALLOWED_THEME_STYLES = ["classic", "modern", "minimal", "luxury"];
+
+const ALLOWED_HEADING_FONTS = [
+  "Playfair Display",
+  "Cormorant Garamond",
+  "Libre Baskerville",
+  "DM Serif Display",
+];
+
+const ALLOWED_BODY_FONTS = [
+  "Inter",
+  "Poppins",
+  "Lato",
+  "Montserrat",
+  "Open Sans",
+];
+
 // @desc    Get wedding details (single document)
 // @route   GET /api/wedding
 // @access  Public
@@ -94,6 +117,14 @@ const updateWeddingDetails = async (req, res) => {
       "receptionLatitude",
       "receptionLongitude",
       "receptionDescription",
+      // Theme & Appearance fields
+      "primaryColor",
+      "secondaryColor",
+      "backgroundColor",
+      "textColor",
+      "headingFont",
+      "bodyFont",
+      "themeStyle",
     ];
 
     // Core validation
@@ -165,6 +196,52 @@ const updateWeddingDetails = async (req, res) => {
         success: false,
         message: "Footer message cannot exceed 500 characters.",
       });
+    }
+
+    // Theme & Appearance validation
+    const colorFields = [
+      { key: "primaryColor", label: "Primary color" },
+      { key: "secondaryColor", label: "Secondary color" },
+      { key: "backgroundColor", label: "Background color" },
+      { key: "textColor", label: "Text color" },
+    ];
+
+    for (const colorField of colorFields) {
+      if (req.body[colorField.key] !== undefined && req.body[colorField.key] !== null && req.body[colorField.key] !== "") {
+        if (!isValidHexColor(req.body[colorField.key])) {
+          return res.status(400).json({
+            success: false,
+            message: `${colorField.label} must be a valid hex color code (e.g. #FFFFFF or #FFF).`,
+          });
+        }
+      }
+    }
+
+    if (req.body.themeStyle !== undefined && req.body.themeStyle !== null && req.body.themeStyle !== "") {
+      if (!ALLOWED_THEME_STYLES.includes(String(req.body.themeStyle).toLowerCase().trim())) {
+        return res.status(400).json({
+          success: false,
+          message: `Theme style must be one of: ${ALLOWED_THEME_STYLES.join(", ")}.`,
+        });
+      }
+    }
+
+    if (req.body.headingFont !== undefined && req.body.headingFont !== null && req.body.headingFont !== "") {
+      if (!ALLOWED_HEADING_FONTS.includes(String(req.body.headingFont).trim())) {
+        return res.status(400).json({
+          success: false,
+          message: `Heading font must be one of: ${ALLOWED_HEADING_FONTS.join(", ")}.`,
+        });
+      }
+    }
+
+    if (req.body.bodyFont !== undefined && req.body.bodyFont !== null && req.body.bodyFont !== "") {
+      if (!ALLOWED_BODY_FONTS.includes(String(req.body.bodyFont).trim())) {
+        return res.status(400).json({
+          success: false,
+          message: `Body font must be one of: ${ALLOWED_BODY_FONTS.join(", ")}.`,
+        });
+      }
     }
 
     // Venue validation: Ceremony
@@ -314,6 +391,15 @@ const updateWeddingDetails = async (req, res) => {
           field === "receptionLongitude"
         ) {
           wedding[field] = Number(req.body[field]);
+        } else if (field === "themeStyle") {
+          wedding[field] = String(req.body[field]).toLowerCase().trim();
+        } else if (
+          field === "primaryColor" ||
+          field === "secondaryColor" ||
+          field === "backgroundColor" ||
+          field === "textColor"
+        ) {
+          wedding[field] = String(req.body[field]).trim();
         } else {
           wedding[field] = req.body[field];
         }

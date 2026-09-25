@@ -194,6 +194,44 @@ const weddingSchema = new mongoose.Schema(
       trim: true,
       maxlength: [2000, "Reception description cannot exceed 2000 characters"],
     },
+
+    // Theme & Appearance Configuration
+    primaryColor: {
+      type: String,
+      default: "#C9A96E",
+      trim: true,
+    },
+    secondaryColor: {
+      type: String,
+      default: "#D8B4A0",
+      trim: true,
+    },
+    backgroundColor: {
+      type: String,
+      default: "#F8F6F1",
+      trim: true,
+    },
+    textColor: {
+      type: String,
+      default: "#26231F",
+      trim: true,
+    },
+    headingFont: {
+      type: String,
+      default: "Playfair Display",
+      trim: true,
+    },
+    bodyFont: {
+      type: String,
+      default: "Inter",
+      trim: true,
+    },
+    themeStyle: {
+      type: String,
+      enum: ["classic", "modern", "minimal", "luxury"],
+      default: "luxury",
+      trim: true,
+    },
   },
   {
     timestamps: true,

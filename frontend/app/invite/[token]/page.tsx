@@ -25,6 +25,12 @@ import {
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import { Toast } from "@/components/ui/Toast";
+import {
+  DEFAULT_THEME,
+  HEADING_FONT_MAP,
+  BODY_FONT_MAP,
+  ThemeStyle,
+} from "@/utils/theme";
 
 export default function PublicInvitationPage() {
   const params = useParams();
@@ -226,23 +232,83 @@ export default function PublicInvitationPage() {
 
   const displayedFooterMessage = wedding?.footerMessage?.trim() || "";
 
+  // Dynamic theme values from MongoDB
+  const theme = useMemo(() => {
+    return {
+      primaryColor: wedding?.primaryColor || DEFAULT_THEME.primaryColor,
+      secondaryColor: wedding?.secondaryColor || DEFAULT_THEME.secondaryColor,
+      backgroundColor: wedding?.backgroundColor || DEFAULT_THEME.backgroundColor,
+      textColor: wedding?.textColor || DEFAULT_THEME.textColor,
+      headingFont: wedding?.headingFont || DEFAULT_THEME.headingFont,
+      bodyFont: wedding?.bodyFont || DEFAULT_THEME.bodyFont,
+      themeStyle: (wedding?.themeStyle as ThemeStyle) || DEFAULT_THEME.themeStyle,
+    };
+  }, [wedding]);
+
+  const headingFontFamily =
+    HEADING_FONT_MAP[theme.headingFont] || "Georgia, serif";
+  const bodyFontFamily =
+    BODY_FONT_MAP[theme.bodyFont] || "sans-serif";
+
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center py-10 px-4 sm:px-6 lg:px-8 bg-[#F8F6F1] text-[#26231F]">
-      <div className="w-full max-w-xl bg-white rounded-3xl border border-[#E8E3DA] p-6 sm:p-10 lg:p-12 shadow-sm relative overflow-hidden space-y-8">
-        {/* Top Gold Border Accent */}
-        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-transparent via-[#C9A96E] to-transparent" />
+    <div
+      className="min-h-screen w-full flex flex-col items-center justify-center py-10 px-4 sm:px-6 lg:px-8 transition-colors duration-200"
+      style={{
+        backgroundColor: theme.backgroundColor,
+        color: theme.textColor,
+        fontFamily: bodyFontFamily,
+      }}
+    >
+      <div
+        className={`w-full max-w-xl bg-white p-6 sm:p-10 lg:p-12 relative overflow-hidden space-y-8 transition-all duration-200 ${
+          theme.themeStyle === "luxury"
+            ? "rounded-3xl border shadow-md"
+            : theme.themeStyle === "classic"
+            ? "rounded-2xl border-2 border-double shadow-xs"
+            : theme.themeStyle === "modern"
+            ? "rounded-xl border shadow-sm"
+            : "rounded-2xl border shadow-none"
+        }`}
+        style={{ borderColor: theme.secondaryColor }}
+      >
+        {/* Luxury Top Gradient Accent */}
+        {theme.themeStyle === "luxury" && (
+          <div
+            className="absolute top-0 left-0 right-0 h-1.5"
+            style={{
+              background: `linear-gradient(to right, transparent, ${theme.primaryColor}, transparent)`,
+            }}
+          />
+        )}
 
         {/* Invitation Top Header */}
         <div className="text-center space-y-4">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-[#FAF8F5] border border-[#E8E3DA] text-[#C9A96E] shadow-xs">
+          <div
+            className="inline-flex items-center justify-center w-14 h-14 rounded-full shadow-xs"
+            style={{
+              backgroundColor: `${theme.primaryColor}15`,
+              color: theme.primaryColor,
+              borderColor: theme.secondaryColor,
+              borderWidth: 1,
+            }}
+          >
             <Sparkles className="w-6 h-6" />
           </div>
 
           <div>
-            <span className="text-[11px] uppercase tracking-widest font-semibold text-[#8C703E]">
+            <span
+              className="text-[11px] uppercase tracking-widest font-semibold block"
+              style={{ color: theme.primaryColor }}
+            >
               {displayedHeading}
             </span>
-            <h1 className="text-3xl sm:text-4xl font-serif font-medium text-[#26231F] tracking-tight mt-1">
+            <h1
+              className="text-3xl sm:text-4xl font-medium tracking-tight mt-1"
+              style={{
+                fontFamily: headingFontFamily,
+                color: theme.textColor,
+              }}
+            >
               {displayedGreeting}
             </h1>
           </div>
@@ -251,13 +317,22 @@ export default function PublicInvitationPage() {
           {(coupleNames || wedding?.weddingDate) && (
             <div className="space-y-0.5">
               {coupleNames && (
-                <p className="text-base font-serif font-semibold text-[#26231F]">
+                <p
+                  className="text-base font-semibold"
+                  style={{
+                    fontFamily: headingFontFamily,
+                    color: theme.textColor,
+                  }}
+                >
                   {coupleNames}
                 </p>
               )}
               {wedding?.weddingDate && (
-                <p className="text-xs text-[#8C703E] font-medium flex items-center justify-center gap-1">
-                  <Calendar className="w-3.5 h-3.5 text-[#C9A96E]" />
+                <p
+                  className="text-xs font-medium flex items-center justify-center gap-1"
+                  style={{ color: theme.primaryColor }}
+                >
+                  <Calendar className="w-3.5 h-3.5" style={{ color: theme.primaryColor }} />
                   <span>{wedding.weddingDate}</span>
                 </p>
               )}
@@ -265,14 +340,35 @@ export default function PublicInvitationPage() {
           )}
 
           {/* Formal Invitation Message from MongoDB */}
-          <div className="bg-[#FAF8F5] rounded-2xl border border-[#E8E3DA] p-5 text-sm text-[#746E66] leading-relaxed whitespace-pre-line text-center">
+          <div
+            className="rounded-2xl p-5 text-sm leading-relaxed whitespace-pre-line text-center"
+            style={{
+              backgroundColor: `${theme.secondaryColor}18`,
+              borderColor: theme.secondaryColor,
+              borderWidth: 1,
+              fontFamily:
+                theme.themeStyle === "classic" || theme.themeStyle === "luxury"
+                  ? headingFontFamily
+                  : bodyFontFamily,
+              fontStyle:
+                theme.themeStyle === "classic" || theme.themeStyle === "luxury"
+                  ? "italic"
+                  : "normal",
+            }}
+          >
             {displayedMessage}
           </div>
 
           {/* Personalized Note for this specific guest if present */}
           {guest.personalMessage && (
-            <div className="bg-white rounded-2xl border border-[#E8E3DA] p-4 text-xs text-[#746E66] italic leading-relaxed text-left">
-              <span className="text-[10px] uppercase font-bold text-[#8C703E] not-italic block mb-1">
+            <div
+              className="bg-white rounded-2xl p-4 text-xs italic leading-relaxed text-left border"
+              style={{ borderColor: theme.secondaryColor }}
+            >
+              <span
+                className="text-[10px] uppercase font-bold not-italic block mb-1"
+                style={{ color: theme.primaryColor }}
+              >
                 Personal Note from Couple:
               </span>
               "{guest.personalMessage}"
@@ -280,11 +376,17 @@ export default function PublicInvitationPage() {
           )}
 
           {/* Guest Allocation Pill */}
-          <div className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-[#FAF8F5] border border-[#E8E3DA] text-xs font-medium text-[#26231F]">
-            <Users className="w-4 h-4 text-[#C9A96E]" />
+          <div
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-medium border"
+            style={{
+              backgroundColor: `${theme.secondaryColor}15`,
+              borderColor: theme.secondaryColor,
+            }}
+          >
+            <Users className="w-4 h-4" style={{ color: theme.primaryColor }} />
             <span>
               Invitation Allowance:{" "}
-              <strong className="text-[#8C703E]">
+              <strong style={{ color: theme.primaryColor }}>
                 Up to {guest.maximumGuests} guest{guest.maximumGuests > 1 ? "s" : ""}
               </strong>
             </span>
@@ -292,7 +394,14 @@ export default function PublicInvitationPage() {
 
           {/* Footer Message / Closing */}
           {displayedFooterMessage && (
-            <p className="text-xs font-serif font-medium text-[#746E66] italic pt-1">
+            <p
+              className="text-xs font-medium italic pt-1"
+              style={{
+                fontFamily: headingFontFamily,
+                color: theme.textColor,
+                opacity: 0.8,
+              }}
+            >
               {displayedFooterMessage}
             </p>
           )}
@@ -300,9 +409,9 @@ export default function PublicInvitationPage() {
 
         {/* Decorative Divider */}
         <div className="flex items-center justify-center">
-          <div className="h-[1px] w-20 bg-[#E8E3DA]" />
-          <Heart className="w-4 h-4 text-[#C9A96E] mx-4" />
-          <div className="h-[1px] w-20 bg-[#E8E3DA]" />
+          <div className="h-[1px] w-20" style={{ backgroundColor: theme.secondaryColor }} />
+          <Heart className="w-4 h-4 mx-4" style={{ color: theme.primaryColor }} />
+          <div className="h-[1px] w-20" style={{ backgroundColor: theme.secondaryColor }} />
         </div>
 
         {/* SUCCESS CONFIRMATION STATE */}
@@ -367,7 +476,8 @@ export default function PublicInvitationPage() {
 
               <Link
                 href="/"
-                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#C9A96E] hover:bg-[#B89658] text-xs font-medium text-white transition-colors cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs font-medium text-white transition-colors cursor-pointer"
+                style={{ backgroundColor: theme.primaryColor }}
               >
                 <span>Visit Wedding Website</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -408,16 +518,29 @@ export default function PublicInvitationPage() {
                   onClick={() => setAttendanceStatus("attending")}
                   className={`flex items-center gap-3 p-4 rounded-2xl border text-left transition-all duration-200 cursor-pointer ${
                     attendanceStatus === "attending"
-                      ? "border-[#C9A96E] bg-[#FAF8F5] ring-2 ring-[#C9A96E]/20"
+                      ? "ring-2"
                       : "border-[#E8E3DA] bg-white hover:border-[#D8B4A0]"
                   }`}
+                  style={
+                    attendanceStatus === "attending"
+                      ? {
+                          borderColor: theme.primaryColor,
+                          backgroundColor: `${theme.secondaryColor}15`,
+                        }
+                      : undefined
+                  }
                 >
                   <div
                     className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
                       attendanceStatus === "attending"
-                        ? "bg-[#C9A96E] text-white"
+                        ? "text-white"
                         : "bg-[#F8F6F1] text-[#746E66]"
                     }`}
+                    style={
+                      attendanceStatus === "attending"
+                        ? { backgroundColor: theme.primaryColor }
+                        : undefined
+                    }
                   >
                     <CheckCircle2 className="w-5 h-5" />
                   </div>
@@ -554,7 +677,8 @@ export default function PublicInvitationPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full py-3.5 px-6 rounded-xl bg-[#C9A96E] hover:bg-[#B89658] active:bg-[#A68345] text-white font-medium shadow-sm transition-all duration-200 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full py-3.5 px-6 rounded-xl text-white font-medium shadow-sm transition-all duration-200 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              style={{ backgroundColor: theme.primaryColor }}
             >
               {submitting ? (
                 <>

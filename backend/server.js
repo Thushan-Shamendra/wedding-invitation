@@ -9,6 +9,8 @@ connectDB();
 
 const app = express();
 
+const authRoutes = require("./routes/authRoutes");
+
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -19,6 +21,10 @@ app.get("/", (req, res) => {
     message: "Wedding Invitation API is running",
   });
 });
+
+// API Routes
+app.use("/api/auth", authRoutes);
+
 
 const PORT = process.env.PORT || 5000;
 

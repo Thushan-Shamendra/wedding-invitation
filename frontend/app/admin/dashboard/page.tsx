@@ -314,6 +314,7 @@ export default function AdminDashboardPage() {
                   { label: "Customize Invitation Message", href: "/admin/invitation-message" },
                   { label: "Add Wedding Guests", href: "/admin/guests" },
                   { label: "Customize Wedding Theme", href: "/admin/theme" },
+                  { label: "Configure Background Music", href: "/admin/music" },
                 ].map((item, idx) => (
                   <Link
                     key={idx}

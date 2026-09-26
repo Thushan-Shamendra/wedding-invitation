@@ -25,6 +25,27 @@ const isValidUrl = (urlStr) => {
   }
 };
 
+// Helper to validate Music URL or path
+const isValidMusicUrl = (urlStr) => {
+  if (!urlStr || typeof urlStr !== "string") return true;
+  const trimmed = urlStr.trim();
+  if (!trimmed) return true;
+  // Disallow javascript: or data: or other dangerous pseudo-protocols
+  if (/^(javascript|data|vbscript):/i.test(trimmed)) {
+    return false;
+  }
+  // Allow root-relative paths like /music/wedding-theme.mp3
+  if (trimmed.startsWith("/")) {
+    return true;
+  }
+  try {
+    const url = new URL(trimmed);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+};
+
 // Helper to validate CSS Hex Color
 const isValidHexColor = (color) => {
   if (!color || typeof color !== "string") return false;
@@ -125,6 +146,10 @@ const updateWeddingDetails = async (req, res) => {
       "headingFont",
       "bodyFont",
       "themeStyle",
+      // Background Music fields
+      "musicEnabled",
+      "backgroundMusicUrl",
+      "musicTitle",
     ];
 
     // Core validation
@@ -242,6 +267,52 @@ const updateWeddingDetails = async (req, res) => {
           message: `Body font must be one of: ${ALLOWED_BODY_FONTS.join(", ")}.`,
         });
       }
+    }
+
+    // Background Music validation
+    if (
+      req.body.musicEnabled !== undefined &&
+      req.body.musicEnabled !== null &&
+      req.body.musicEnabled !== ""
+    ) {
+      if (
+        typeof req.body.musicEnabled !== "boolean" &&
+        req.body.musicEnabled !== "true" &&
+        req.body.musicEnabled !== "false"
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "musicEnabled must be a boolean value.",
+        });
+      }
+    }
+
+    if (req.body.musicTitle && req.body.musicTitle.length > 150) {
+      return res.status(400).json({
+        success: false,
+        message: "Music title cannot exceed 150 characters.",
+      });
+    }
+
+    if (
+      req.body.backgroundMusicUrl &&
+      req.body.backgroundMusicUrl.length > 2000
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Music URL cannot exceed 2000 characters.",
+      });
+    }
+
+    if (
+      req.body.backgroundMusicUrl &&
+      !isValidMusicUrl(req.body.backgroundMusicUrl)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Please provide a valid music URL (http://, https://) or local path (e.g. /music/track.mp3).",
+      });
     }
 
     // Venue validation: Ceremony
@@ -400,6 +471,10 @@ const updateWeddingDetails = async (req, res) => {
           field === "textColor"
         ) {
           wedding[field] = String(req.body[field]).trim();
+        } else if (field === "musicEnabled") {
+          wedding[field] = req.body[field] === true || req.body[field] === "true";
+        } else if (field === "musicTitle" || field === "backgroundMusicUrl") {
+          wedding[field] = String(req.body[field] || "").trim();
         } else {
           wedding[field] = req.body[field];
         }

@@ -4,13 +4,9 @@ import React, { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { weddingService } from "@/services/weddingService";
 import { Wedding } from "@/types";
-import {
-  DEFAULT_THEME,
-  HEADING_FONT_MAP,
-  BODY_FONT_MAP,
-  ThemeStyle,
-} from "@/utils/theme";
+import { DEFAULT_THEME, HEADING_FONT_MAP, BODY_FONT_MAP, ThemeStyle } from "@/utils/theme";
 import { Sparkles, ArrowRight } from "lucide-react";
+import { MusicPlayer } from "@/components/wedding/MusicPlayer";
 
 export default function Home() {
   const [wedding, setWedding] = useState<Wedding | null>(null);
@@ -133,6 +129,15 @@ export default function Home() {
           </p>
         </div>
       </div>
+
+      {/* Floating Background Music Player */}
+      {wedding?.musicEnabled && (wedding.backgroundMusicUrl || wedding.musicUrl) && (
+        <MusicPlayer
+          url={(wedding.backgroundMusicUrl || wedding.musicUrl) as string}
+          title={wedding.musicTitle || "Wedding Music"}
+          theme={theme}
+        />
+      )}
     </div>
   );
 }

@@ -25,6 +25,7 @@ import {
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import { Toast } from "@/components/ui/Toast";
+import { MusicPlayer } from "@/components/wedding/MusicPlayer";
 import {
   DEFAULT_THEME,
   HEADING_FONT_MAP,
@@ -712,6 +713,15 @@ export default function PublicInvitationPage() {
           message={toast.message}
           type={toast.type}
           onClose={() => setToast((prev) => ({ ...prev, show: false }))}
+        />
+      )}
+
+      {/* Floating Background Music Player */}
+      {wedding?.musicEnabled && (wedding.backgroundMusicUrl || wedding.musicUrl) && (
+        <MusicPlayer
+          url={(wedding.backgroundMusicUrl || wedding.musicUrl) as string}
+          title={wedding.musicTitle || "Wedding Music"}
+          theme={theme}
         />
       )}
     </div>

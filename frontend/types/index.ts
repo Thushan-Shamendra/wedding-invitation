@@ -73,6 +73,8 @@ export interface Wedding {
   bodyFont?: string;
   themeStyle?: "classic" | "modern" | "minimal" | "luxury";
   musicEnabled?: boolean;
+  backgroundMusicUrl?: string;
+  musicTitle?: string;
   musicUrl?: string;
   rsvpEnabled?: boolean;
   personalizedInvitationsEnabled?: boolean;

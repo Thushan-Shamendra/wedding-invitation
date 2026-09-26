@@ -232,6 +232,24 @@ const weddingSchema = new mongoose.Schema(
       default: "luxury",
       trim: true,
     },
+
+    // Background Music Configuration
+    musicEnabled: {
+      type: Boolean,
+      default: false,
+    },
+    backgroundMusicUrl: {
+      type: String,
+      default: "",
+      trim: true,
+      maxlength: [2000, "Music URL cannot exceed 2000 characters"],
+    },
+    musicTitle: {
+      type: String,
+      default: "",
+      trim: true,
+      maxlength: [150, "Music title cannot exceed 150 characters"],
+    },
   },
   {
     timestamps: true,

@@ -8,6 +8,7 @@ import { StatusBadge } from "@/components/admin/StatusBadge";
 import { EmptyState } from "@/components/admin/EmptyState";
 import { guestService } from "@/services/guestService";
 import { rsvpService } from "@/services/rsvpService";
+import { weddingService } from "@/services/weddingService";
 import { RSVP } from "@/types";
 import {
   Users,
@@ -32,16 +33,21 @@ export default function AdminDashboardPage() {
   });
 
   const [recentResponses, setRecentResponses] = useState<RSVP[]>([]);
+  const [websiteStatus, setWebsiteStatus] = useState<"draft" | "published">("draft");
 
   useEffect(() => {
     const loadDashboardData = async () => {
       try {
-        const [liveStats, responses] = await Promise.all([
+        const [liveStats, responses, weddingData] = await Promise.all([
           guestService.getGuestStats(),
           rsvpService.getRSVPResponses({ limit: 5 }).catch(() => []),
+          weddingService.getWeddingDetails().catch(() => null),
         ]);
         setStats(liveStats);
         setRecentResponses(responses);
+        if (weddingData?.websiteStatus) {
+          setWebsiteStatus(weddingData.websiteStatus);
+        }
       } catch (err) {
         console.error("Failed to load dashboard stats:", err);
       }
@@ -268,16 +274,21 @@ export default function AdminDashboardPage() {
                     Website Status
                   </h3>
                 </div>
-                <StatusBadge status="draft" label="Draft" />
+                <StatusBadge
+                  status={websiteStatus === "published" ? "attending" : "draft"}
+                  label={websiteStatus === "published" ? "Published" : "Draft"}
+                />
               </div>
 
               <p className="text-xs text-[#746E66] leading-relaxed mb-6">
-                Your wedding invitation website is currently in draft mode. Complete all wedding details and settings before making it live to guests.
+                {websiteStatus === "published"
+                  ? "Your wedding invitation website is currently published and live for guests to view."
+                  : "Your wedding invitation website is currently in draft mode. Complete all wedding details and settings before making it live to guests."}
               </p>
 
               <div className="space-y-2.5">
                 <Link
-                  href="/"
+                  href="/?preview=true"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-[#E8E3DA] hover:bg-[#F8F6F1] text-xs font-medium text-[#26231F] transition-colors"
@@ -290,7 +301,7 @@ export default function AdminDashboardPage() {
                   href="/admin/settings"
                   className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#F8F6F1] hover:bg-[#ECE6DC] text-xs font-medium text-[#26231F] border border-[#E8E3DA] transition-colors"
                 >
-                  <span>Website Settings</span>
+                  <span>Manage Website Settings</span>
                 </Link>
               </div>
             </div>

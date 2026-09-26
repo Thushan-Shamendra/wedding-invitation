@@ -77,6 +77,7 @@ export interface Wedding {
   musicTitle?: string;
   musicUrl?: string;
   rsvpEnabled?: boolean;
+  personalInvitationEnabled?: boolean;
   personalizedInvitationsEnabled?: boolean;
   createdAt?: string;
   updatedAt?: string;

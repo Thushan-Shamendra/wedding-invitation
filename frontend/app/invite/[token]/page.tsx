@@ -171,6 +171,35 @@ export default function PublicInvitationPage() {
     );
   }
 
+  if (wedding && (wedding.personalInvitationEnabled === false || wedding.personalizedInvitationsEnabled === false)) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center p-6 bg-[#F8F6F1] text-[#26231F]">
+        <div className="w-full max-w-md bg-white rounded-3xl border border-[#E8E3DA] p-8 sm:p-10 shadow-sm text-center space-y-4">
+          <div className="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto">
+            <AlertCircle className="w-7 h-7" />
+          </div>
+
+          <h1 className="text-2xl font-serif font-semibold text-[#26231F]">
+            Personal Invitations Unavailable
+          </h1>
+
+          <p className="text-sm text-[#746E66] leading-relaxed">
+            Personal invitations are currently unavailable. Please check back later or contact the couple directly.
+          </p>
+
+          <div className="pt-4">
+            <Link
+              href="/"
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-[#E8E3DA] bg-[#F8F6F1] hover:bg-[#EFEAE1] text-xs font-medium text-[#26231F] transition-colors"
+            >
+              <span>Go to Wedding Home</span>
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (notFound || !guest) {
     return (
       <div className="min-h-screen w-full flex items-center justify-center p-6 bg-[#F8F6F1] text-[#26231F]">
@@ -415,8 +444,20 @@ export default function PublicInvitationPage() {
           <div className="h-[1px] w-20" style={{ backgroundColor: theme.secondaryColor }} />
         </div>
 
-        {/* SUCCESS CONFIRMATION STATE */}
-        {submittedSuccess && submittedData ? (
+        {/* RSVP FORM / UNAVAILABLE STATE / SUCCESS STATE */}
+        {wedding?.rsvpEnabled === false ? (
+          <div className="bg-[#FAF8F5] rounded-2xl border border-[#E8E3DA] p-6 sm:p-8 text-center space-y-3">
+            <div className="w-12 h-12 rounded-full bg-white border border-[#E8E3DA] flex items-center justify-center mx-auto text-[#746E66]">
+              <Calendar className="w-6 h-6 text-[#C9A96E]" />
+            </div>
+            <h3 className="font-serif font-semibold text-lg text-[#26231F]">
+              RSVP Is Currently Unavailable
+            </h3>
+            <p className="text-xs text-[#746E66] max-w-sm mx-auto leading-relaxed">
+              Online RSVP submissions are currently closed for this celebration. For any questions or updates, please reach out to the couple directly.
+            </p>
+          </div>
+        ) : submittedSuccess && submittedData ? (
           <div className="bg-[#FAF8F5] rounded-2xl border border-[#C9A96E]/40 p-6 sm:p-8 text-center space-y-5 animate-in fade-in zoom-in-95 duration-200">
             <div className="w-14 h-14 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto">
               <Check className="w-7 h-7" />

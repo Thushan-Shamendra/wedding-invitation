@@ -109,6 +109,66 @@ export const authService = {
     }
   },
 
+  async updateProfile(data: { name: string; email: string }): Promise<Admin> {
+    const token = this.getToken();
+    if (!token) throw new Error("Authentication required.");
+
+    const apiUrl =
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+
+    const response = await fetch(`${apiUrl}/auth/profile`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+
+    const resData = await response.json();
+
+    if (!response.ok) {
+      throw new Error(resData.message || "Failed to update profile.");
+    }
+
+    if (resData.admin) {
+      const rememberMe = Boolean(localStorage.getItem(TOKEN_KEY));
+      this.setAuth(token, resData.admin, rememberMe);
+      return resData.admin;
+    }
+
+    throw new Error("Invalid response from server.");
+  },
+
+  async changePassword(data: {
+    currentPassword: string;
+    newPassword: string;
+    confirmNewPassword?: string;
+  }): Promise<{ success: boolean; message: string }> {
+    const token = this.getToken();
+    if (!token) throw new Error("Authentication required.");
+
+    const apiUrl =
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+
+    const response = await fetch(`${apiUrl}/auth/change-password`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+
+    const resData = await response.json();
+
+    if (!response.ok) {
+      throw new Error(resData.message || "Failed to change password.");
+    }
+
+    return resData;
+  },
+
   logout(): void {
     this.clearAuth();
     if (typeof window !== "undefined") {

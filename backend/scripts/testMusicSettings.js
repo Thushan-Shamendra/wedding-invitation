@@ -105,7 +105,7 @@ async function runTests() {
     const validLocalPayload = {
       musicEnabled: true,
       musicTitle: "Acoustic Wedding Theme",
-      backgroundMusicUrl: "/music/wedding-theme.mp3",
+      backgroundMusicUrl: "/music/wedding-theme.wav",
     };
     const updateLocalRes = await fetch(`${BASE_URL}/wedding`, {
       method: "PUT",
@@ -120,7 +120,7 @@ async function runTests() {
     if (
       updateLocalData.data.musicEnabled !== true ||
       updateLocalData.data.musicTitle !== "Acoustic Wedding Theme" ||
-      updateLocalData.data.backgroundMusicUrl !== "/music/wedding-theme.mp3"
+      updateLocalData.data.backgroundMusicUrl !== "/music/wedding-theme.wav"
     ) {
       throw new Error("Local audio update values do not match expected data.");
     }

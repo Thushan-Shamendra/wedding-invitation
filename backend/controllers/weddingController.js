@@ -34,7 +34,7 @@ const isValidMusicUrl = (urlStr) => {
   if (/^(javascript|data|vbscript):/i.test(trimmed)) {
     return false;
   }
-  // Allow root-relative paths like /music/wedding-theme.mp3
+  // Allow root-relative paths like /music/wedding-theme.wav or /music/song.mp3
   if (trimmed.startsWith("/")) {
     return true;
   }
@@ -150,6 +150,9 @@ const updateWeddingDetails = async (req, res) => {
       "musicEnabled",
       "backgroundMusicUrl",
       "musicTitle",
+      // Website Settings fields
+      "rsvpEnabled",
+      "personalInvitationEnabled",
     ];
 
     // Core validation
@@ -221,6 +224,55 @@ const updateWeddingDetails = async (req, res) => {
         success: false,
         message: "Footer message cannot exceed 500 characters.",
       });
+    }
+
+    // Website Settings validation
+    if (
+      req.body.websiteStatus !== undefined &&
+      req.body.websiteStatus !== null &&
+      req.body.websiteStatus !== ""
+    ) {
+      const status = String(req.body.websiteStatus).toLowerCase().trim();
+      if (!["draft", "published"].includes(status)) {
+        return res.status(400).json({
+          success: false,
+          message: "Website status must be either 'draft' or 'published'.",
+        });
+      }
+    }
+
+    if (
+      req.body.rsvpEnabled !== undefined &&
+      req.body.rsvpEnabled !== null &&
+      req.body.rsvpEnabled !== ""
+    ) {
+      if (
+        typeof req.body.rsvpEnabled !== "boolean" &&
+        req.body.rsvpEnabled !== "true" &&
+        req.body.rsvpEnabled !== "false"
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "rsvpEnabled must be a boolean value.",
+        });
+      }
+    }
+
+    if (
+      req.body.personalInvitationEnabled !== undefined &&
+      req.body.personalInvitationEnabled !== null &&
+      req.body.personalInvitationEnabled !== ""
+    ) {
+      if (
+        typeof req.body.personalInvitationEnabled !== "boolean" &&
+        req.body.personalInvitationEnabled !== "true" &&
+        req.body.personalInvitationEnabled !== "false"
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "personalInvitationEnabled must be a boolean value.",
+        });
+      }
     }
 
     // Theme & Appearance validation
@@ -471,7 +523,9 @@ const updateWeddingDetails = async (req, res) => {
           field === "textColor"
         ) {
           wedding[field] = String(req.body[field]).trim();
-        } else if (field === "musicEnabled") {
+        } else if (field === "websiteStatus") {
+          wedding[field] = String(req.body[field]).toLowerCase().trim();
+        } else if (field === "musicEnabled" || field === "rsvpEnabled" || field === "personalInvitationEnabled") {
           wedding[field] = req.body[field] === true || req.body[field] === "true";
         } else if (field === "musicTitle" || field === "backgroundMusicUrl") {
           wedding[field] = String(req.body[field] || "").trim();

@@ -34,7 +34,7 @@ interface MusicFormData {
 const PRESET_TRACKS = [
   {
     title: "Gentle Wedding Theme (Local)",
-    url: "/music/wedding-theme.mp3",
+    url: "/music/wedding-theme.wav",
     description: "Built-in soft harmonic chord chime from local public folder",
   },
   {
@@ -550,7 +550,7 @@ export default function MusicManagementPage() {
                 </label>
                 <Input
                   type="text"
-                  placeholder="e.g. /music/wedding-theme.mp3 or https://..."
+                  placeholder="e.g. /music/wedding-theme.wav or https://..."
                   value={formData.backgroundMusicUrl}
                   onChange={(e) =>
                     setFormData((prev) => ({
@@ -567,13 +567,13 @@ export default function MusicManagementPage() {
                   </p>
                   <ul className="list-disc pl-4 space-y-0.5">
                     <li>
-                      <strong>Local file</strong>: Place your MP3 inside{" "}
+                      <strong>Local file</strong>: Place your audio file (.mp3, .wav, .ogg) inside{" "}
                       <code className="bg-white px-1 py-0.5 rounded border border-[#E8E3DA]">
                         frontend/public/music/
                       </code>{" "}
                       and specify{" "}
                       <code className="bg-white px-1 py-0.5 rounded border border-[#E8E3DA]">
-                        /music/filename.mp3
+                        /music/wedding-theme.wav
                       </code>
                     </li>
                     <li>

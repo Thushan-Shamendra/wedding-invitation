@@ -100,6 +100,14 @@ const weddingSchema = new mongoose.Schema(
       enum: ["draft", "published"],
       default: "draft",
     },
+    rsvpEnabled: {
+      type: Boolean,
+      default: true,
+    },
+    personalInvitationEnabled: {
+      type: Boolean,
+      default: true,
+    },
 
     // Ceremony Venue Details
     ceremonyVenueName: {

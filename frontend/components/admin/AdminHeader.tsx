@@ -66,7 +66,7 @@ export function AdminHeader({ title, onMenuClick, admin }: AdminHeaderProps) {
       <div className="flex items-center gap-3 sm:gap-4">
         {/* Preview Website Button */}
         <Link
-          href="/"
+          href="/?preview=true"
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium border border-[#E8E3DA] bg-white hover:bg-[#F8F6F1] text-[#26231F] shadow-xs transition-colors"

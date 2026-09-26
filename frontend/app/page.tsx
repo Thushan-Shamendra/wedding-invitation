@@ -15,7 +15,6 @@ import {
 } from "@/utils/theme";
 import {
   Clock,
-  ArrowRight,
   ShieldCheck,
   AlertCircle,
   Heart,
@@ -223,19 +222,9 @@ function HomeContent() {
               Our Wedding Website Is Coming Soon
             </h1>
 
-            <p className="text-sm opacity-80 mb-8 max-w-sm mx-auto leading-relaxed">
+            <p className="text-sm opacity-80 max-w-sm mx-auto leading-relaxed">
               We are currently putting together the final details for our special day. Please check back soon!
             </p>
-
-            <div className="pt-6 border-t border-[#E8E3DA] flex items-center justify-center">
-              <Link
-                href="/admin/login"
-                className="text-xs font-medium text-[#746E66] hover:text-[#26231F] transition-colors flex items-center gap-1.5"
-              >
-                <span>Administrator Sign In</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
           </div>
         </div>
       ) : (

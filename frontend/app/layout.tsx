@@ -15,8 +15,8 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Wedding Invitation Admin",
-  description: "Wedding Invitation Admin Dashboard",
+  title: "Wedding Invitation | Celebrate With Us",
+  description: "Join us as we celebrate our special wedding day.",
 };
 
 export default function RootLayout({
@@ -27,7 +27,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${playfair.variable} h-full antialiased`}
+      className={`${inter.variable} ${playfair.variable} h-full antialiased scroll-smooth`}
     >
       <body className="min-h-full flex flex-col font-sans bg-[#F8F6F1] text-[#26231F]">
         {children}

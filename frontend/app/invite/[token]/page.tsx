@@ -21,6 +21,7 @@ import {
   Edit3,
   CalendarCheck2,
   Calendar,
+  Share2,
 } from "lucide-react";
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
@@ -279,6 +280,15 @@ export default function PublicInvitationPage() {
     HEADING_FONT_MAP[theme.headingFont] || "Georgia, serif";
   const bodyFontFamily =
     BODY_FONT_MAP[theme.bodyFont] || "sans-serif";
+
+  const handleWhatsAppShare = () => {
+    if (typeof window === "undefined") return;
+    const invUrl = window.location.href;
+    const coupleText = coupleNames ? `${coupleNames}'s` : "our";
+    const text = `You're invited to ${coupleText} wedding 💍\n\nView your personal invitation:\n${invUrl}`;
+    const waUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(waUrl, "_blank", "noopener,noreferrer");
+  };
 
   return (
     <div
@@ -737,8 +747,32 @@ export default function PublicInvitationPage() {
           </form>
         )}
 
+        {/* Action Links: View Wedding Details & WhatsApp Share */}
+        <div className="pt-4 border-t border-[#E8E3DA]/80 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <Link
+            href="/"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium border transition-colors hover:bg-zinc-50"
+            style={{
+              borderColor: `${theme.secondaryColor}80`,
+              color: theme.textColor,
+            }}
+          >
+            <span>View Wedding Details</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+
+          <button
+            type="button"
+            onClick={handleWhatsAppShare}
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium bg-[#25D366] hover:bg-[#20ba59] text-white shadow-2xs transition-colors cursor-pointer"
+          >
+            <Share2 className="w-3.5 h-3.5" />
+            <span>Share on WhatsApp</span>
+          </button>
+        </div>
+
         {/* Footer */}
-        <div className="pt-4 border-t border-[#E8E3DA]/80 text-center">
+        <div className="pt-2 text-center">
           <p className="text-[11px] text-[#746E66]/70">
             Personal invitation token:{" "}
             <code className="bg-[#F8F6F1] px-1.5 py-0.5 rounded text-[#26231F]">

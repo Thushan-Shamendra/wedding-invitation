@@ -18,6 +18,8 @@ export function WeddingDetails({ wedding, theme }: WeddingDetailsProps) {
   // Ceremony details (support both direct and nested venue objects)
   const ceremonyName =
     wedding.ceremonyVenueName || wedding.ceremonyVenue?.name;
+  const ceremonyHall =
+    wedding.ceremonyHallName || wedding.ceremonyVenue?.hallName;
   const ceremonyAddress =
     wedding.ceremonyAddress || wedding.ceremonyVenue?.address;
   const ceremonyDate =
@@ -28,8 +30,11 @@ export function WeddingDetails({ wedding, theme }: WeddingDetailsProps) {
     wedding.ceremonyDescription || wedding.ceremonyVenue?.description;
 
   // Reception details
+  const isReceptionEnabled = wedding.receptionEnabled === true;
   const receptionName =
     wedding.receptionVenueName || wedding.receptionVenue?.name;
+  const receptionHall =
+    wedding.receptionHallName || wedding.receptionVenue?.hallName;
   const receptionAddress =
     wedding.receptionAddress || wedding.receptionVenue?.address;
   const receptionDate =
@@ -40,7 +45,7 @@ export function WeddingDetails({ wedding, theme }: WeddingDetailsProps) {
     wedding.receptionDescription || wedding.receptionVenue?.description;
 
   const hasCeremony = !!(ceremonyName || ceremonyAddress || ceremonyTime);
-  const hasReception = !!(receptionName || receptionAddress || receptionTime);
+  const hasReception = isReceptionEnabled && !!(receptionName || receptionAddress || receptionTime);
 
   if (!hasCeremony && !hasReception) return null;
 
@@ -168,6 +173,12 @@ export function WeddingDetails({ wedding, theme }: WeddingDetailsProps) {
                     </div>
                   )}
 
+                  {ceremonyHall && ceremonyHall.trim() && (
+                    <div className="pl-7 text-xs font-medium" style={{ color: theme.primaryColor }}>
+                      {ceremonyHall.trim()}
+                    </div>
+                  )}
+
                   {ceremonyAddress && (
                     <div className="pl-7 text-xs opacity-75 leading-relaxed" style={{ color: theme.textColor }}>
                       {ceremonyAddress}
@@ -263,6 +274,12 @@ export function WeddingDetails({ wedding, theme }: WeddingDetailsProps) {
                       <span style={{ color: theme.textColor }}>
                         {receptionName}
                       </span>
+                    </div>
+                  )}
+
+                  {receptionHall && receptionHall.trim() && (
+                    <div className="pl-7 text-xs font-medium" style={{ color: theme.primaryColor }}>
+                      {receptionHall.trim()}
                     </div>
                   )}
 

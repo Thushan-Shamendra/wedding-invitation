@@ -25,6 +25,28 @@ const isValidUrl = (urlStr) => {
   }
 };
 
+// Helper to validate Google Maps URL
+const isValidGoogleMapsUrl = (urlStr) => {
+  if (!urlStr || typeof urlStr !== "string") return true;
+  const trimmed = urlStr.trim();
+  if (!trimmed) return true;
+  // Disallow dangerous pseudo-protocols
+  if (/^(javascript|data|vbscript):/i.test(trimmed)) {
+    return false;
+  }
+  try {
+    const url = new URL(trimmed);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+};
+
+// Helper to check if coordinate has a non-empty value
+const hasCoordinateValue = (val) => {
+  return val !== undefined && val !== null && String(val).trim() !== "";
+};
+
 // Helper to validate Music URL or path
 const isValidMusicUrl = (urlStr) => {
   if (!urlStr || typeof urlStr !== "string") return true;
@@ -122,6 +144,7 @@ const updateWeddingDetails = async (req, res) => {
       "websiteStatus",
       // Ceremony fields
       "ceremonyVenueName",
+      "ceremonyHallName",
       "ceremonyAddress",
       "ceremonyDate",
       "ceremonyTime",
@@ -130,7 +153,9 @@ const updateWeddingDetails = async (req, res) => {
       "ceremonyLongitude",
       "ceremonyDescription",
       // Reception fields
+      "receptionEnabled",
       "receptionVenueName",
+      "receptionHallName",
       "receptionAddress",
       "receptionDate",
       "receptionTime",
@@ -375,6 +400,13 @@ const updateWeddingDetails = async (req, res) => {
       });
     }
 
+    if (req.body.ceremonyHallName && req.body.ceremonyHallName.length > 150) {
+      return res.status(400).json({
+        success: false,
+        message: "Ceremony hall name cannot exceed 150 characters.",
+      });
+    }
+
     if (req.body.ceremonyAddress && req.body.ceremonyAddress.length > 300) {
       return res.status(400).json({
         success: false,
@@ -394,7 +426,7 @@ const updateWeddingDetails = async (req, res) => {
 
     if (
       req.body.ceremonyGoogleMapsUrl &&
-      !isValidUrl(req.body.ceremonyGoogleMapsUrl)
+      !isValidGoogleMapsUrl(req.body.ceremonyGoogleMapsUrl)
     ) {
       return res.status(400).json({
         success: false,
@@ -402,11 +434,8 @@ const updateWeddingDetails = async (req, res) => {
       });
     }
 
-    if (
-      req.body.ceremonyLatitude !== undefined &&
-      req.body.ceremonyLatitude !== null &&
-      req.body.ceremonyLatitude !== ""
-    ) {
+    // Ceremony Coordinates Validation
+    if (hasCoordinateValue(req.body.ceremonyLatitude)) {
       if (!isValidLatitude(req.body.ceremonyLatitude)) {
         return res.status(400).json({
           success: false,
@@ -415,11 +444,7 @@ const updateWeddingDetails = async (req, res) => {
       }
     }
 
-    if (
-      req.body.ceremonyLongitude !== undefined &&
-      req.body.ceremonyLongitude !== null &&
-      req.body.ceremonyLongitude !== ""
-    ) {
+    if (hasCoordinateValue(req.body.ceremonyLongitude)) {
       if (!isValidLongitude(req.body.ceremonyLongitude)) {
         return res.status(400).json({
           success: false,
@@ -428,11 +453,49 @@ const updateWeddingDetails = async (req, res) => {
       }
     }
 
+    if (
+      req.body.ceremonyLatitude !== undefined ||
+      req.body.ceremonyLongitude !== undefined
+    ) {
+      const hasLat = hasCoordinateValue(req.body.ceremonyLatitude);
+      const hasLng = hasCoordinateValue(req.body.ceremonyLongitude);
+      if (hasLat !== hasLng) {
+        return res.status(400).json({
+          success: false,
+          message: "Ceremony coordinates must either both be provided or both be empty.",
+        });
+      }
+    }
+
     // Venue validation: Reception
+    if (
+      req.body.receptionEnabled !== undefined &&
+      req.body.receptionEnabled !== null &&
+      req.body.receptionEnabled !== ""
+    ) {
+      if (
+        typeof req.body.receptionEnabled !== "boolean" &&
+        req.body.receptionEnabled !== "true" &&
+        req.body.receptionEnabled !== "false"
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "receptionEnabled must be a boolean value.",
+        });
+      }
+    }
+
     if (req.body.receptionVenueName && req.body.receptionVenueName.length > 150) {
       return res.status(400).json({
         success: false,
         message: "Reception venue name cannot exceed 150 characters.",
+      });
+    }
+
+    if (req.body.receptionHallName && req.body.receptionHallName.length > 150) {
+      return res.status(400).json({
+        success: false,
+        message: "Reception hall name cannot exceed 150 characters.",
       });
     }
 
@@ -455,7 +518,7 @@ const updateWeddingDetails = async (req, res) => {
 
     if (
       req.body.receptionGoogleMapsUrl &&
-      !isValidUrl(req.body.receptionGoogleMapsUrl)
+      !isValidGoogleMapsUrl(req.body.receptionGoogleMapsUrl)
     ) {
       return res.status(400).json({
         success: false,
@@ -463,11 +526,8 @@ const updateWeddingDetails = async (req, res) => {
       });
     }
 
-    if (
-      req.body.receptionLatitude !== undefined &&
-      req.body.receptionLatitude !== null &&
-      req.body.receptionLatitude !== ""
-    ) {
+    // Reception Coordinates Validation
+    if (hasCoordinateValue(req.body.receptionLatitude)) {
       if (!isValidLatitude(req.body.receptionLatitude)) {
         return res.status(400).json({
           success: false,
@@ -476,15 +536,25 @@ const updateWeddingDetails = async (req, res) => {
       }
     }
 
-    if (
-      req.body.receptionLongitude !== undefined &&
-      req.body.receptionLongitude !== null &&
-      req.body.receptionLongitude !== ""
-    ) {
+    if (hasCoordinateValue(req.body.receptionLongitude)) {
       if (!isValidLongitude(req.body.receptionLongitude)) {
         return res.status(400).json({
           success: false,
           message: "Reception longitude must be a valid number between -180 and 180.",
+        });
+      }
+    }
+
+    if (
+      req.body.receptionLatitude !== undefined ||
+      req.body.receptionLongitude !== undefined
+    ) {
+      const hasLat = hasCoordinateValue(req.body.receptionLatitude);
+      const hasLng = hasCoordinateValue(req.body.receptionLongitude);
+      if (hasLat !== hasLng) {
+        return res.status(400).json({
+          success: false,
+          message: "Reception coordinates must either both be provided or both be empty.",
         });
       }
     }
@@ -525,9 +595,27 @@ const updateWeddingDetails = async (req, res) => {
           wedding[field] = String(req.body[field]).trim();
         } else if (field === "websiteStatus") {
           wedding[field] = String(req.body[field]).toLowerCase().trim();
-        } else if (field === "musicEnabled" || field === "rsvpEnabled" || field === "personalInvitationEnabled") {
+        } else if (
+          field === "musicEnabled" ||
+          field === "rsvpEnabled" ||
+          field === "personalInvitationEnabled" ||
+          field === "receptionEnabled"
+        ) {
           wedding[field] = req.body[field] === true || req.body[field] === "true";
         } else if (field === "musicTitle" || field === "backgroundMusicUrl") {
+          wedding[field] = String(req.body[field] || "").trim();
+        } else if (
+          field === "ceremonyVenueName" ||
+          field === "ceremonyHallName" ||
+          field === "ceremonyAddress" ||
+          field === "ceremonyGoogleMapsUrl" ||
+          field === "ceremonyDescription" ||
+          field === "receptionVenueName" ||
+          field === "receptionHallName" ||
+          field === "receptionAddress" ||
+          field === "receptionGoogleMapsUrl" ||
+          field === "receptionDescription"
+        ) {
           wedding[field] = String(req.body[field] || "").trim();
         } else {
           wedding[field] = req.body[field];

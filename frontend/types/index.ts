@@ -20,6 +20,7 @@ export interface ApiErrorResponse {
 
 export interface WeddingVenue {
   name: string;
+  hallName?: string;
   address: string;
   date?: string;
   time: string;
@@ -47,6 +48,7 @@ export interface Wedding {
   footerMessage?: string;
   websiteStatus?: "draft" | "published";
   ceremonyVenueName?: string;
+  ceremonyHallName?: string;
   ceremonyAddress?: string;
   ceremonyDate?: string;
   ceremonyTime?: string;
@@ -54,7 +56,9 @@ export interface Wedding {
   ceremonyLatitude?: number | null;
   ceremonyLongitude?: number | null;
   ceremonyDescription?: string;
+  receptionEnabled?: boolean;
   receptionVenueName?: string;
+  receptionHallName?: string;
   receptionAddress?: string;
   receptionDate?: string;
   receptionTime?: string;

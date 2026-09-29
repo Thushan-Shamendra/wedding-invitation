@@ -116,6 +116,12 @@ const weddingSchema = new mongoose.Schema(
       trim: true,
       maxlength: [150, "Ceremony venue name cannot exceed 150 characters"],
     },
+    ceremonyHallName: {
+      type: String,
+      default: "",
+      trim: true,
+      maxlength: [150, "Ceremony hall name cannot exceed 150 characters"],
+    },
     ceremonyAddress: {
       type: String,
       default: "",
@@ -157,11 +163,21 @@ const weddingSchema = new mongoose.Schema(
     },
 
     // Reception Venue Details
+    receptionEnabled: {
+      type: Boolean,
+      default: false,
+    },
     receptionVenueName: {
       type: String,
       default: "",
       trim: true,
       maxlength: [150, "Reception venue name cannot exceed 150 characters"],
+    },
+    receptionHallName: {
+      type: String,
+      default: "",
+      trim: true,
+      maxlength: [150, "Reception hall name cannot exceed 150 characters"],
     },
     receptionAddress: {
       type: String,

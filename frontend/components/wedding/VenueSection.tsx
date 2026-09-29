@@ -3,8 +3,18 @@
 import React, { useState } from "react";
 import { Wedding } from "@/types";
 import { ThemeConfig, HEADING_FONT_MAP } from "@/utils/theme";
-import { formatWeddingTime } from "@/utils/formatters";
-import { MapPin, Navigation, ExternalLink, Sparkles, Church, GlassWater } from "lucide-react";
+import { formatWeddingDate, formatWeddingTime } from "@/utils/formatters";
+import {
+  MapPin,
+  Navigation,
+  ExternalLink,
+  Sparkles,
+  Church,
+  GlassWater,
+  Calendar,
+  Clock,
+  Building2,
+} from "lucide-react";
 
 interface VenueSectionProps {
   wedding: Wedding;
@@ -17,73 +27,109 @@ export function VenueSection({ wedding, theme }: VenueSectionProps) {
 
   const ceremonyName =
     wedding.ceremonyVenueName || wedding.ceremonyVenue?.name;
+  const ceremonyHall =
+    wedding.ceremonyHallName || wedding.ceremonyVenue?.hallName;
   const ceremonyAddress =
     wedding.ceremonyAddress || wedding.ceremonyVenue?.address;
+  const ceremonyDate =
+    wedding.ceremonyDate || wedding.ceremonyVenue?.date || wedding.weddingDate;
   const ceremonyTime =
     wedding.ceremonyTime || wedding.ceremonyVenue?.time || wedding.startTime;
   const ceremonyMapUrl =
     wedding.ceremonyGoogleMapsUrl || wedding.ceremonyVenue?.googleMapsUrl;
   const ceremonyLat = wedding.ceremonyLatitude;
   const ceremonyLng = wedding.ceremonyLongitude;
+  const ceremonyDescription =
+    wedding.ceremonyDescription || wedding.ceremonyVenue?.description;
+
+  const isReceptionEnabled = wedding.receptionEnabled === true;
 
   const receptionName =
     wedding.receptionVenueName || wedding.receptionVenue?.name;
+  const receptionHall =
+    wedding.receptionHallName || wedding.receptionVenue?.hallName;
   const receptionAddress =
     wedding.receptionAddress || wedding.receptionVenue?.address;
+  const receptionDate =
+    wedding.receptionDate || wedding.receptionVenue?.date || wedding.weddingDate;
   const receptionTime =
     wedding.receptionTime || wedding.receptionVenue?.time || wedding.endTime;
   const receptionMapUrl =
     wedding.receptionGoogleMapsUrl || wedding.receptionVenue?.googleMapsUrl;
   const receptionLat = wedding.receptionLatitude;
   const receptionLng = wedding.receptionLongitude;
+  const receptionDescription =
+    wedding.receptionDescription || wedding.receptionVenue?.description;
 
   const hasCeremony = !!(ceremonyName || ceremonyAddress);
-  const hasReception = !!(receptionName || receptionAddress);
+  const hasReception = isReceptionEnabled && !!(receptionName || receptionAddress);
 
-  const [activeTab, setActiveTab] = useState<"ceremony" | "reception">(
-    hasCeremony ? "ceremony" : "reception"
-  );
+  const [activeTab, setActiveTab] = useState<"ceremony" | "reception">("ceremony");
 
   if (!hasCeremony && !hasReception) return null;
 
   // Active venue data based on tab
-  const isCeremony = activeTab === "ceremony";
+  const isCeremony = !hasReception || activeTab === "ceremony";
   const currentName = isCeremony ? ceremonyName : receptionName;
+  const currentHall = isCeremony ? ceremonyHall : receptionHall;
   const currentAddress = isCeremony ? ceremonyAddress : receptionAddress;
+  const currentDate = isCeremony ? ceremonyDate : receptionDate;
   const currentTime = isCeremony ? ceremonyTime : receptionTime;
   const currentLat = isCeremony ? ceremonyLat : receptionLat;
   const currentLng = isCeremony ? ceremonyLng : receptionLng;
   const currentDirectMapUrl = isCeremony ? ceremonyMapUrl : receptionMapUrl;
+  const currentDescription = isCeremony ? ceremonyDescription : receptionDescription;
 
-  // Generate zero-key Google Maps embed URL
+  // Query parts: Venue Name + Hall Name + Address
+  const queryParts = [currentName, currentHall, currentAddress].filter(Boolean);
+  const queryString = queryParts.join(" ");
+
+  // Generate zero-key Google Maps embed URL using priority:
+  // 1. If valid coordinates exist -> use coordinates
+  // 2. Otherwise -> build query from Venue Name + Hall Name + Address
   let embedUrl = "";
-  if (currentLat && currentLng) {
+  if (
+    currentLat !== null &&
+    currentLat !== undefined &&
+    currentLng !== null &&
+    currentLng !== undefined &&
+    !isNaN(Number(currentLat)) &&
+    !isNaN(Number(currentLng))
+  ) {
     embedUrl = `https://maps.google.com/maps?q=${currentLat},${currentLng}&hl=en&z=15&output=embed`;
-  } else if (currentAddress || currentName) {
-    const query = encodeURIComponent(
-      [currentName, currentAddress].filter(Boolean).join(", ")
-    );
-    embedUrl = `https://maps.google.com/maps?q=${query}&hl=en&z=15&output=embed`;
+  } else if (queryString) {
+    embedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(queryString)}&hl=en&z=15&output=embed`;
   }
 
-  // External direct maps URL
+  // Open in Google Maps Link:
+  // 1. If Google Maps URL exists -> use that URL
+  // 2. Otherwise -> search/?api=1&query=encoded(query)
   const googleMapsLink =
     currentDirectMapUrl?.trim() ||
-    (currentLat && currentLng
+    (currentLat !== null &&
+    currentLat !== undefined &&
+    currentLng !== null &&
+    currentLng !== undefined &&
+    !isNaN(Number(currentLat)) &&
+    !isNaN(Number(currentLng))
       ? `https://www.google.com/maps/search/?api=1&query=${currentLat},${currentLng}`
-      : currentAddress || currentName
-      ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-          [currentName, currentAddress].filter(Boolean).join(", ")
-        )}`
+      : queryString
+      ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(queryString)}`
       : "#");
 
+  // Directions Link:
+  // 1. If coordinates exist -> destination=LAT,LNG
+  // 2. Otherwise -> destination=encoded(query)
   const directionsLink =
-    currentLat && currentLng
+    currentLat !== null &&
+    currentLat !== undefined &&
+    currentLng !== null &&
+    currentLng !== undefined &&
+    !isNaN(Number(currentLat)) &&
+    !isNaN(Number(currentLng))
       ? `https://www.google.com/maps/dir/?api=1&destination=${currentLat},${currentLng}`
-      : currentAddress || currentName
-      ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
-          [currentName, currentAddress].filter(Boolean).join(", ")
-        )}`
+      : queryString
+      ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(queryString)}`
       : googleMapsLink;
 
   return (
@@ -116,7 +162,7 @@ export function VenueSection({ wedding, theme }: VenueSectionProps) {
           />
         </div>
 
-        {/* Tab Switcher if both exist */}
+        {/* Tab Switcher if both ceremony and reception are active */}
         {hasCeremony && hasReception && (
           <div className="flex items-center justify-center gap-3 mb-10">
             <button
@@ -173,35 +219,80 @@ export function VenueSection({ wedding, theme }: VenueSectionProps) {
           style={{ borderColor: `${theme.secondaryColor}90` }}
         >
           <div className="p-8 sm:p-10 border-b" style={{ borderColor: `${theme.secondaryColor}40` }}>
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div>
+            <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
+              <div className="space-y-3">
                 <div
-                  className="text-xs uppercase tracking-widest font-semibold mb-1"
+                  className="text-xs uppercase tracking-widest font-semibold"
                   style={{ color: theme.primaryColor }}
                 >
                   {isCeremony ? "Ceremony Location" : "Reception Location"}
                 </div>
 
-                <h3
-                  className="text-2xl sm:text-3xl font-medium tracking-tight mb-2"
-                  style={{
-                    fontFamily: headingFontFamily,
-                    color: theme.textColor,
-                  }}
-                >
-                  {currentName || "Venue"}
-                </h3>
+                <div>
+                  <h3
+                    className="text-2xl sm:text-3xl font-medium tracking-tight"
+                    style={{
+                      fontFamily: headingFontFamily,
+                      color: theme.textColor,
+                    }}
+                  >
+                    {currentName || "Venue"}
+                  </h3>
+
+                  {/* Hall Name - Only render if available */}
+                  {currentHall && currentHall.trim() && (
+                    <p
+                      className="text-sm sm:text-base font-medium flex items-center gap-1.5 mt-1"
+                      style={{ color: theme.primaryColor }}
+                    >
+                      <Building2 className="w-4 h-4 shrink-0" />
+                      <span>{currentHall.trim()}</span>
+                    </p>
+                  )}
+                </div>
 
                 {currentAddress && (
-                  <p className="text-sm opacity-80 flex items-center gap-2 max-w-xl" style={{ color: theme.textColor }}>
-                    <MapPin className="w-4 h-4 shrink-0" style={{ color: theme.primaryColor }} />
+                  <p className="text-sm opacity-80 flex items-start gap-2 max-w-xl" style={{ color: theme.textColor }}>
+                    <MapPin className="w-4 h-4 shrink-0 mt-0.5" style={{ color: theme.primaryColor }} />
                     <span>{currentAddress}</span>
+                  </p>
+                )}
+
+                {/* Date & Time Badges */}
+                <div className="flex flex-wrap gap-2 pt-1 text-xs">
+                  {currentDate && (
+                    <span
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg border bg-white/80"
+                      style={{ borderColor: `${theme.secondaryColor}60`, color: theme.textColor }}
+                    >
+                      <Calendar className="w-3.5 h-3.5" style={{ color: theme.primaryColor }} />
+                      <span>{formatWeddingDate(currentDate, { includeWeekday: true })}</span>
+                    </span>
+                  )}
+                  {currentTime && (
+                    <span
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg border bg-white/80"
+                      style={{ borderColor: `${theme.secondaryColor}60`, color: theme.textColor }}
+                    >
+                      <Clock className="w-3.5 h-3.5" style={{ color: theme.primaryColor }} />
+                      <span>{formatWeddingTime(currentTime)}</span>
+                    </span>
+                  )}
+                </div>
+
+                {/* Description */}
+                {currentDescription && currentDescription.trim() && (
+                  <p
+                    className="text-sm leading-relaxed max-w-xl pt-2 opacity-90 italic"
+                    style={{ color: theme.textColor }}
+                  >
+                    &quot;{currentDescription.trim()}&quot;
                   </p>
                 )}
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-wrap items-center gap-3 shrink-0">
+              <div className="flex flex-wrap items-center gap-3 shrink-0 pt-2">
                 <a
                   href={googleMapsLink}
                   target="_blank"

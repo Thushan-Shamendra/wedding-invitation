@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { guestService } from "@/services/guestService";
@@ -239,12 +239,11 @@ export default function PublicInvitationPage() {
   );
 
   // Dynamic invitation message texts from MongoDB
-  const displayedGreeting = useMemo(() => {
-    if (!guest) return "";
-    const template =
-      wedding?.personalGuestGreeting?.trim() || "Dear {{guestName}},";
-    return template.replace(/\{\{\s*guestName\s*\}\}/g, guest.name);
-  }, [wedding?.personalGuestGreeting, guest]);
+  const greetingTemplate =
+    wedding?.personalGuestGreeting?.trim() || "Dear {{guestName}},";
+  const displayedGreeting = guest
+    ? greetingTemplate.replace(/\{\{\s*guestName\s*\}\}/g, guest.name)
+    : "";
 
   const displayedHeading =
     wedding?.invitationHeading?.trim() || "We're Getting Married";
@@ -253,28 +252,23 @@ export default function PublicInvitationPage() {
     wedding?.invitationMessage?.trim() ||
     "You are warmly invited to celebrate our special wedding day with us.";
 
-  const coupleNames = useMemo(() => {
-    if (!wedding) return "";
-    const b = wedding.brideName?.trim();
-    const g = wedding.groomName?.trim();
-    if (b && g) return `${b} & ${g}`;
-    return b || g || "";
-  }, [wedding]);
+  const bName = wedding?.brideName?.trim();
+  const gName = wedding?.groomName?.trim();
+  const coupleNames =
+    bName && gName ? `${bName} & ${gName}` : bName || gName || "";
 
   const displayedFooterMessage = wedding?.footerMessage?.trim() || "";
 
   // Dynamic theme values from MongoDB
-  const theme = useMemo(() => {
-    return {
-      primaryColor: wedding?.primaryColor || DEFAULT_THEME.primaryColor,
-      secondaryColor: wedding?.secondaryColor || DEFAULT_THEME.secondaryColor,
-      backgroundColor: wedding?.backgroundColor || DEFAULT_THEME.backgroundColor,
-      textColor: wedding?.textColor || DEFAULT_THEME.textColor,
-      headingFont: wedding?.headingFont || DEFAULT_THEME.headingFont,
-      bodyFont: wedding?.bodyFont || DEFAULT_THEME.bodyFont,
-      themeStyle: (wedding?.themeStyle as ThemeStyle) || DEFAULT_THEME.themeStyle,
-    };
-  }, [wedding]);
+  const theme = {
+    primaryColor: wedding?.primaryColor || DEFAULT_THEME.primaryColor,
+    secondaryColor: wedding?.secondaryColor || DEFAULT_THEME.secondaryColor,
+    backgroundColor: wedding?.backgroundColor || DEFAULT_THEME.backgroundColor,
+    textColor: wedding?.textColor || DEFAULT_THEME.textColor,
+    headingFont: wedding?.headingFont || DEFAULT_THEME.headingFont,
+    bodyFont: wedding?.bodyFont || DEFAULT_THEME.bodyFont,
+    themeStyle: (wedding?.themeStyle as ThemeStyle) || DEFAULT_THEME.themeStyle,
+  };
 
   const headingFontFamily =
     HEADING_FONT_MAP[theme.headingFont] || "Georgia, serif";

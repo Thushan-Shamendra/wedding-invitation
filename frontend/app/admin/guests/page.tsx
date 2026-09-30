@@ -12,9 +12,16 @@ import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { Toast } from "@/components/ui/Toast";
+import { ShareInvitationModal } from "@/components/admin/ShareInvitationModal";
 import { guestService } from "@/services/guestService";
-import { getInvitationUrl } from "@/utils/invitation";
-import { Guest, GuestStats } from "@/types";
+import { weddingService } from "@/services/weddingService";
+import {
+  getInvitationUrl,
+  buildInvitationShareMessage,
+  buildWhatsAppUrl,
+  buildSmsUrl,
+} from "@/utils/shareInvitation";
+import { Guest, GuestStats, Wedding } from "@/types";
 import {
   Users,
   UserCheck,
@@ -32,10 +39,13 @@ import {
   Phone,
   Mail,
   Share2,
+  MessageCircle,
+  MessageSquare,
 } from "lucide-react";
 
 export default function GuestManagementPage() {
   const [guests, setGuests] = useState<Guest[]>([]);
+  const [wedding, setWedding] = useState<Wedding | null>(null);
   const [stats, setStats] = useState<GuestStats>({
     totalGuests: 0,
     attending: 0,
@@ -53,10 +63,12 @@ export default function GuestManagementPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isCreatedModalOpen, setIsCreatedModalOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   // Active / Selected Guest State
   const [selectedGuest, setSelectedGuest] = useState<Guest | null>(null);
   const [createdGuest, setCreatedGuest] = useState<Guest | null>(null);
+  const [guestToShare, setGuestToShare] = useState<Guest | null>(null);
   const [guestToDelete, setGuestToDelete] = useState<Guest | null>(null);
 
   // Action Loading States
@@ -84,15 +96,19 @@ export default function GuestManagementPage() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [guestList, guestStats] = await Promise.all([
+      const [guestList, guestStats, weddingData] = await Promise.all([
         guestService.getGuests({
           search: searchTerm,
           status: statusFilter,
         }),
         guestService.getGuestStats(),
+        weddingService.getWeddingDetails().catch(() => null),
       ]);
       setGuests(guestList);
       setStats(guestStats);
+      if (weddingData) {
+        setWedding(weddingData);
+      }
     } catch (err) {
       console.error("Failed to load guests:", err);
       setToast({
@@ -163,6 +179,11 @@ export default function GuestManagementPage() {
   const openViewModal = (guest: Guest) => {
     setSelectedGuest(guest);
     setIsViewModalOpen(true);
+  };
+
+  const openShareModal = (guest: Guest) => {
+    setGuestToShare(guest);
+    setIsShareModalOpen(true);
   };
 
   const validate = () => {
@@ -525,6 +546,15 @@ export default function GuestManagementPage() {
                           <td className="py-4 px-5 text-right">
                             <div className="flex items-center justify-end gap-1">
                               <button
+                                onClick={() => openShareModal(guest)}
+                                className="p-1.5 rounded-lg text-[#746E66] hover:text-[#C9A96E] hover:bg-[#F8F6F1] transition-colors cursor-pointer"
+                                title="Share invitation"
+                                aria-label="Share invitation"
+                              >
+                                <Share2 className="w-4 h-4" />
+                              </button>
+
+                              <button
                                 onClick={() => openViewModal(guest)}
                                 className="p-1.5 rounded-lg text-[#746E66] hover:text-[#26231F] hover:bg-[#F8F6F1] transition-colors cursor-pointer"
                                 title="View details"
@@ -608,22 +638,33 @@ export default function GuestManagementPage() {
 
                   {/* Action Bar */}
                   <div className="pt-3 border-t border-[#E8E3DA]/80 flex items-center justify-between gap-2">
-                    <button
-                      onClick={() => copyToClipboard(guest.invitationToken)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#E8E3DA] text-xs font-medium text-[#26231F] hover:bg-[#F8F6F1] transition-colors"
-                    >
-                      {copiedToken === guest.invitationToken ? (
-                        <>
-                          <Check className="w-3.5 h-3.5 text-emerald-600" />
-                          <span>Copied</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-3.5 h-3.5 text-[#C9A96E]" />
-                          <span>Copy Link</span>
-                        </>
-                      )}
-                    </button>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => openShareModal(guest)}
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-[#C9A96E] hover:bg-[#B89658] text-white text-xs font-medium transition-colors shadow-2xs cursor-pointer"
+                        title="Share invitation"
+                      >
+                        <Share2 className="w-3.5 h-3.5" />
+                        <span>Share</span>
+                      </button>
+
+                      <button
+                        onClick={() => copyToClipboard(guest.invitationToken)}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-[#E8E3DA] text-xs font-medium text-[#26231F] hover:bg-[#F8F6F1] transition-colors cursor-pointer"
+                      >
+                        {copiedToken === guest.invitationToken ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 text-emerald-600" />
+                            <span>Copied</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5 text-[#C9A96E]" />
+                            <span>Copy Link</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
 
                     <div className="flex items-center gap-1">
                       <a
@@ -819,6 +860,86 @@ export default function GuestManagementPage() {
               </div>
             </div>
 
+            {/* Share Options */}
+            <div className="space-y-3 pt-3 border-t border-[#E8E3DA]/80">
+              <span className="text-xs font-semibold uppercase tracking-wider text-[#746E66] block">
+                Share Invitation
+              </span>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => copyToClipboard(createdGuest.invitationToken)}
+                  className="flex items-center justify-center gap-2 p-2.5 rounded-xl border border-[#E8E3DA] bg-white hover:bg-[#F8F6F1] text-xs font-medium text-[#26231F] transition-colors cursor-pointer"
+                >
+                  <Copy className="w-4 h-4 text-[#C9A96E] shrink-0" />
+                  <span>Copy Link</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const msg = buildInvitationShareMessage({
+                      brideName: wedding?.brideName,
+                      groomName: wedding?.groomName,
+                      guestName: createdGuest.name,
+                      personalMessage: createdGuest.personalMessage,
+                      invitationUrl: getInvitationUrl(createdGuest.invitationToken),
+                    });
+                    const url = buildWhatsAppUrl(createdGuest.phone, msg);
+                    window.open(url, "_blank", "noopener,noreferrer");
+                  }}
+                  className="flex items-center justify-center gap-2 p-2.5 rounded-xl border border-emerald-200 bg-emerald-50/70 hover:bg-emerald-100 text-xs font-medium text-emerald-800 transition-colors cursor-pointer"
+                >
+                  <MessageCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>WhatsApp</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!createdGuest.phone) {
+                      setToast({ message: "No phone number available for SMS.", type: "error" });
+                      return;
+                    }
+                    const msg = buildInvitationShareMessage({
+                      brideName: wedding?.brideName,
+                      groomName: wedding?.groomName,
+                      guestName: createdGuest.name,
+                      personalMessage: createdGuest.personalMessage,
+                      invitationUrl: getInvitationUrl(createdGuest.invitationToken),
+                    });
+                    const url = buildSmsUrl(createdGuest.phone, msg);
+                    window.location.href = url;
+                    if (typeof window !== "undefined" && !/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+                      setToast({ message: "SMS sharing is available on supported devices.", type: "success" });
+                    }
+                  }}
+                  disabled={!createdGuest.phone}
+                  className={`flex items-center justify-center gap-2 p-2.5 rounded-xl border text-xs font-medium transition-colors ${
+                    createdGuest.phone
+                      ? "border-[#E8E3DA] bg-white hover:bg-[#F8F6F1] text-[#26231F] cursor-pointer"
+                      : "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed opacity-60"
+                  }`}
+                >
+                  <MessageSquare className="w-4 h-4 text-[#C9A96E] shrink-0" />
+                  <span>Message</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsCreatedModalOpen(false);
+                    openShareModal(createdGuest);
+                  }}
+                  className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-[#C9A96E] hover:bg-[#B89658] text-white text-xs font-medium transition-colors cursor-pointer shadow-2xs"
+                >
+                  <Share2 className="w-4 h-4 shrink-0" />
+                  <span>Share Dialog</span>
+                </button>
+              </div>
+            </div>
+
             <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-3 border-t border-[#E8E3DA]/80">
               <a
                 href={`/invite/${createdGuest.invitationToken}`}
@@ -836,7 +957,7 @@ export default function GuestManagementPage() {
                 onClick={() => setIsCreatedModalOpen(false)}
                 className="w-full sm:w-auto"
               >
-                Close
+                Done
               </Button>
             </div>
           </div>
@@ -1050,28 +1171,54 @@ export default function GuestManagementPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#E8E3DA]/80">
-              <a
-                href={`/invite/${selectedGuest.invitationToken}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#E8E3DA] bg-white hover:bg-[#F8F6F1] text-xs font-medium text-[#26231F] transition-colors"
-              >
-                <ExternalLink className="w-3.5 h-3.5 text-[#C9A96E]" />
-                <span>Open Invitation</span>
-              </a>
-
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-[#E8E3DA]/80">
               <Button
                 type="button"
-                variant="primary"
-                onClick={() => setIsViewModalOpen(false)}
+                variant="secondary"
+                onClick={() => {
+                  setIsViewModalOpen(false);
+                  openShareModal(selectedGuest);
+                }}
+                leftIcon={<Share2 className="w-4 h-4 text-[#C9A96E]" />}
               >
-                Close
+                Share Invitation
               </Button>
+
+              <div className="flex items-center gap-2">
+                <a
+                  href={`/invite/${selectedGuest.invitationToken}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#E8E3DA] bg-white hover:bg-[#F8F6F1] text-xs font-medium text-[#26231F] transition-colors"
+                >
+                  <ExternalLink className="w-3.5 h-3.5 text-[#C9A96E]" />
+                  <span>Open Invitation</span>
+                </a>
+
+                <Button
+                  type="button"
+                  variant="primary"
+                  onClick={() => setIsViewModalOpen(false)}
+                >
+                  Close
+                </Button>
+              </div>
             </div>
           </div>
         )}
       </Modal>
+
+      {/* SHARE INVITATION MODAL */}
+      <ShareInvitationModal
+        isOpen={isShareModalOpen}
+        onClose={() => {
+          setIsShareModalOpen(false);
+          setGuestToShare(null);
+        }}
+        guest={guestToShare}
+        wedding={wedding}
+        onToast={(message, type) => setToast({ message, type })}
+      />
 
       {/* DELETE CONFIRMATION MODAL */}
       <ConfirmationModal

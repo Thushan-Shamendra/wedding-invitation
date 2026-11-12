@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useMemo, Suspense } from "react";
+import { useEffect, useState, useMemo, Suspense, type CSSProperties } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { weddingService } from "@/services/weddingService";
@@ -18,8 +18,8 @@ import {
   ShieldCheck,
   AlertCircle,
   Heart,
-  Sparkles,
 } from "lucide-react";
+import { getVenueQuery, getWeddingVenues } from "@/utils/weddingVenues";
 import { WeddingNavbar } from "@/components/wedding/WeddingNavbar";
 import { HeroSection } from "@/components/wedding/HeroSection";
 import { Countdown } from "@/components/wedding/Countdown";
@@ -32,6 +32,7 @@ import { RSVPInfoSection } from "@/components/wedding/RSVPInfoSection";
 import { ContactSection } from "@/components/wedding/ContactSection";
 import { WeddingFooter } from "@/components/wedding/WeddingFooter";
 import { MusicPlayer } from "@/components/wedding/MusicPlayer";
+import "./wedding.css";
 
 function HomeContent() {
   const [wedding, setWedding] = useState<Wedding | null>(null);
@@ -177,17 +178,26 @@ function HomeContent() {
 
   const isDraft = wedding.websiteStatus === "draft" && !isPreview;
 
-  // Primary Location logic for Hero
+  const venues = getWeddingVenues(wedding);
+  const detailVenues = venues.filter(({ name, address, time, description, hall }) => name || address || time || description || hall);
+  const mapVenues = venues.filter((venue) => getVenueQuery(venue) || venue.mapUrl?.trim());
   const primaryLocation =
     wedding.ceremonyVenueName ||
     wedding.ceremonyVenue?.name ||
     wedding.receptionVenueName ||
     wedding.receptionVenue?.name ||
     "";
+  const invitationStyle = {
+    "--wedding-gold": theme.primaryColor,
+    "--wedding-secondary": theme.secondaryColor,
+    "--wedding-background": theme.backgroundColor,
+    "--wedding-ink": theme.textColor,
+    "--wedding-serif": headingFontFamily,
+  } as CSSProperties;
 
   return (
     <div
-      className="min-h-screen w-full transition-colors duration-200 selection:bg-amber-100 selection:text-amber-900 overflow-x-hidden"
+      className="min-h-screen w-full transition-colors duration-200 selection:bg-amber-100 selection:text-amber-900"
       style={{
         backgroundColor: theme.backgroundColor,
         color: theme.textColor,
@@ -229,7 +239,7 @@ function HomeContent() {
         </div>
       ) : (
         /* Complete Published or Admin Preview Wedding Invitation */
-        <main className="relative">
+        <main className="wedding-site" data-theme={theme.themeStyle} style={invitationStyle}>
           {/* Admin Preview Floating Indicator */}
           {isPreview && (
             <aside
@@ -251,67 +261,50 @@ function HomeContent() {
           <WeddingNavbar
             brideName={wedding.brideName}
             groomName={wedding.groomName}
-            theme={theme}
+            hasDetails={detailVenues.length > 0}
+            hasVenue={mapVenues.length > 0}
             hasSchedule={scheduleEvents.length > 0}
           />
 
           {/* 2. Hero Section */}
           <HeroSection
-            weddingTitle={wedding.weddingTitle}
             invitationHeading={wedding.invitationHeading}
             invitationMessage={wedding.invitationMessage}
             brideName={wedding.brideName}
             groomName={wedding.groomName}
             weddingDate={wedding.weddingDate}
             location={primaryLocation}
-            theme={theme}
           />
 
           {/* 3. Countdown Section */}
-          <Countdown
-            weddingDate={wedding.weddingDate}
-            theme={theme}
-          />
+          <Countdown weddingDate={wedding.weddingDate} />
 
           {/* 4. Couple Section */}
           <CoupleSection
             brideName={wedding.brideName}
             brideDescription={wedding.brideDescription}
+            bridePhoto={wedding.bridePhoto}
             groomName={wedding.groomName}
             groomDescription={wedding.groomDescription}
-            theme={theme}
+            groomPhoto={wedding.groomPhoto}
           />
 
           {/* 5. Wedding Details (Ceremony & Reception) */}
-          <WeddingDetails
-            wedding={wedding}
-            theme={theme}
-          />
+          <WeddingDetails venues={detailVenues} />
 
           {/* 6. Venue & Maps Section */}
-          <VenueSection
-            wedding={wedding}
-            theme={theme}
-          />
+          <VenueSection venues={mapVenues} />
 
           {/* 7. Schedule Timeline */}
-          <ScheduleTimeline
-            events={scheduleEvents}
-            theme={theme}
-          />
+          <ScheduleTimeline events={scheduleEvents} />
 
           {/* 8. Dress Code Section */}
-          <DressCodeSection
-            dressCode={wedding.dressCode}
-            theme={theme}
-          />
+          <DressCodeSection dressCode={wedding.dressCode} />
 
           {/* 9. RSVP Information Section */}
           <RSVPInfoSection
             rsvpEnabled={wedding.rsvpEnabled}
-            personalInvitationEnabled={wedding.personalInvitationEnabled}
             contactCoordinator={wedding.contactCoordinator}
-            theme={theme}
           />
 
           {/* 10. Contact Section */}
@@ -321,7 +314,6 @@ function HomeContent() {
             contactCoordinator={wedding.contactCoordinator}
             brideName={wedding.brideName}
             groomName={wedding.groomName}
-            theme={theme}
           />
 
           {/* 11. Footer */}
@@ -330,7 +322,6 @@ function HomeContent() {
             groomName={wedding.groomName}
             weddingDate={wedding.weddingDate}
             footerMessage={wedding.footerMessage}
-            theme={theme}
           />
         </main>
       )}

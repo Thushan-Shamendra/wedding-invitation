@@ -20,6 +20,7 @@ const weddingSchema = new mongoose.Schema(
       trim: true,
       maxlength: [2000, "Bride description cannot exceed 2000 characters"],
     },
+    bridePhoto: { type: String, default: "" },
     groomName: {
       type: String,
       default: "",
@@ -32,6 +33,7 @@ const weddingSchema = new mongoose.Schema(
       trim: true,
       maxlength: [2000, "Groom description cannot exceed 2000 characters"],
     },
+    groomPhoto: { type: String, default: "" },
     weddingDate: {
       type: String,
       default: "",

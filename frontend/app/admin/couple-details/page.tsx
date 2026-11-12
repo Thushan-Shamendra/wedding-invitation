@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { AdminLayout } from "@/components/admin/AdminLayout";
+import { CouplePhotoField } from "@/components/admin/CouplePhotoField";
+import { CouplePortrait } from "@/components/wedding/CouplePortrait";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Button } from "@/components/ui/Button";
@@ -20,6 +22,8 @@ import {
 export default function CoupleDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [processing, setProcessing] = useState({ bridePhoto: false, groomPhoto: false });
+  const isPreparingPhoto = processing.bridePhoto || processing.groomPhoto;
   const [toast, setToast] = useState<{
     message: string;
     type: "success" | "error";
@@ -28,8 +32,10 @@ export default function CoupleDetailsPage() {
   const [formData, setFormData] = useState({
     brideName: "",
     brideDescription: "",
+    bridePhoto: "",
     groomName: "",
     groomDescription: "",
+    groomPhoto: "",
   });
 
   const [initialData, setInitialData] = useState<typeof formData | null>(null);
@@ -43,8 +49,10 @@ export default function CoupleDetailsPage() {
         const loaded = {
           brideName: data.brideName || "",
           brideDescription: data.brideDescription || "",
+          bridePhoto: data.bridePhoto || "",
           groomName: data.groomName || "",
           groomDescription: data.groomDescription || "",
+          groomPhoto: data.groomPhoto || "",
         };
         setFormData(loaded);
         setInitialData(loaded);
@@ -104,7 +112,7 @@ export default function CoupleDetailsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validate()) {
+    if (saving || isPreparingPhoto || !initialData || !validate()) {
       return;
     }
 
@@ -112,15 +120,22 @@ export default function CoupleDetailsPage() {
     setToast(null);
 
     try {
-      // Send ONLY couple fields to avoid erasing other wedding settings
-      const result = await weddingService.updateWeddingDetails({
-        brideName: formData.brideName,
-        brideDescription: formData.brideDescription,
-        groomName: formData.groomName,
-        groomDescription: formData.groomDescription,
-      });
+      const changes: Partial<typeof formData> = {};
+      for (const field of Object.keys(formData) as (keyof typeof formData)[]) {
+        if (formData[field] !== initialData[field]) changes[field] = formData[field];
+      }
+      const result = await weddingService.updateWeddingDetails(changes);
 
-      setInitialData(formData);
+      const saved = {
+        brideName: result.data.brideName || "",
+        brideDescription: result.data.brideDescription || "",
+        bridePhoto: result.data.bridePhoto || "",
+        groomName: result.data.groomName || "",
+        groomDescription: result.data.groomDescription || "",
+        groomPhoto: result.data.groomPhoto || "",
+      };
+      setFormData(saved);
+      setInitialData(saved);
       setToast({
         message: result.message || "Couple details updated successfully.",
         type: "success",
@@ -128,13 +143,26 @@ export default function CoupleDetailsPage() {
     } catch (err) {
       console.error("Failed to update couple details:", err);
       setToast({
-        message: "Unable to update couple details. Please try again.",
+        message: err instanceof Error ? err.message : "Unable to update couple details. Please try again.",
         type: "error",
       });
     } finally {
       setSaving(false);
     }
   };
+
+  const photoField = (field: "bridePhoto" | "groomPhoto", role: "Bride" | "Groom") => (
+    <CouplePhotoField
+      role={role}
+      photo={formData[field]}
+      disabled={saving || !initialData}
+      processing={processing[field]}
+      error={errors[field]}
+      onChange={(photo) => handleChange(field, photo)}
+      onProcessing={(value) => setProcessing((prev) => ({ ...prev, [field]: value }))}
+      onError={(error) => setErrors((prev) => ({ ...prev, [field]: error }))}
+    />
+  );
 
   return (
     <AdminLayout title="Couple Details">
@@ -151,7 +179,7 @@ export default function CoupleDetailsPage() {
           </div>
 
           <Link
-            href="/"
+            href="/?preview=true"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[#E8E3DA] bg-white hover:bg-[#F8F6F1] text-xs sm:text-sm font-medium text-[#26231F] shadow-xs transition-colors self-start sm:self-auto"
@@ -185,6 +213,8 @@ export default function CoupleDetailsPage() {
                     </p>
                   </div>
                 </div>
+
+                {photoField("bridePhoto", "Bride")}
 
                 <Input
                   label="Bride Name"
@@ -226,6 +256,8 @@ export default function CoupleDetailsPage() {
                   </div>
                 </div>
 
+                {photoField("groomPhoto", "Groom")}
+
                 <Input
                   label="Groom Name"
                   placeholder="e.g. Daniel Perera"
@@ -256,7 +288,7 @@ export default function CoupleDetailsPage() {
                   type="button"
                   variant="secondary"
                   onClick={handleReset}
-                  disabled={saving}
+                  disabled={saving || isPreparingPhoto}
                   leftIcon={<RotateCcw className="w-4 h-4" />}
                 >
                   Reset
@@ -265,6 +297,7 @@ export default function CoupleDetailsPage() {
                 <Button
                   type="submit"
                   variant="primary"
+                  disabled={!initialData || isPreparingPhoto}
                   isLoading={saving}
                   loadingText="Saving..."
                   leftIcon={<Save className="w-4 h-4" />}
@@ -297,6 +330,7 @@ export default function CoupleDetailsPage() {
 
                 {/* Bride Block */}
                 <div className="my-6 space-y-2">
+                  <div className="mx-auto w-24"><CouplePortrait photo={formData.bridePhoto} name={formData.brideName.trim() || "the bride"} /></div>
                   <h4 className="text-2xl font-serif font-medium text-[#26231F] tracking-tight">
                     {formData.brideName.trim() || "Amanda"}
                   </h4>
@@ -320,6 +354,7 @@ export default function CoupleDetailsPage() {
 
                 {/* Groom Block */}
                 <div className="my-6 space-y-2">
+                  <div className="mx-auto w-24"><CouplePortrait photo={formData.groomPhoto} name={formData.groomName.trim() || "the groom"} /></div>
                   <h4 className="text-2xl font-serif font-medium text-[#26231F] tracking-tight">
                     {formData.groomName.trim() || "Daniel"}
                   </h4>

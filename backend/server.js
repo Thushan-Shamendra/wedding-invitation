@@ -13,6 +13,7 @@ const authRoutes = require("./routes/authRoutes");
 const weddingRoutes = require("./routes/weddingRoutes");
 
 app.use(cors());
+app.use("/api/wedding", weddingRoutes);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -25,7 +26,6 @@ app.get("/", (req, res) => {
 
 // API Routes
 app.use("/api/auth", authRoutes);
-app.use("/api/wedding", weddingRoutes);
 app.use("/api/schedule", require("./routes/scheduleRoutes"));
 app.use("/api/guests", require("./routes/guestRoutes"));
 app.use("/api/rsvp", require("./routes/rsvpRoutes"));

@@ -33,8 +33,10 @@ export interface Wedding {
   weddingTitle: string;
   brideName: string;
   brideDescription: string;
+  bridePhoto?: string;
   groomName: string;
   groomDescription: string;
+  groomPhoto?: string;
   weddingDate: string;
   startTime: string;
   endTime: string;

@@ -1,5 +1,23 @@
 const Wedding = require("../models/Wedding");
 
+const MAX_PORTRAIT_BYTES = 256 * 1024;
+
+const isValidPortrait = (value) => {
+  if (value === "") return true;
+  if (typeof value !== "string" || value.length > 350_000) return false;
+
+  const match = /^data:image\/jpeg;base64,([A-Za-z0-9+/]+={0,2})$/.exec(value);
+  if (!match) return false;
+
+  const image = Buffer.from(match[1], "base64");
+  return (
+    image.length >= 5 && image.length <= MAX_PORTRAIT_BYTES &&
+    image.toString("base64") === match[1] &&
+    image[0] === 0xff && image[1] === 0xd8 && image[2] === 0xff &&
+    image.at(-2) === 0xff && image.at(-1) === 0xd9
+  );
+};
+
 // Helper to validate latitude
 const isValidLatitude = (lat) => {
   const num = Number(lat);
@@ -128,8 +146,10 @@ const updateWeddingDetails = async (req, res) => {
       "weddingTitle",
       "brideName",
       "brideDescription",
+      "bridePhoto",
       "groomName",
       "groomDescription",
+      "groomPhoto",
       "weddingDate",
       "startTime",
       "endTime",
@@ -179,6 +199,15 @@ const updateWeddingDetails = async (req, res) => {
       "rsvpEnabled",
       "personalInvitationEnabled",
     ];
+
+    for (const [field, role] of [["bridePhoto", "Bride"], ["groomPhoto", "Groom"]]) {
+      if (req.body[field] !== undefined && !isValidPortrait(req.body[field])) {
+        return res.status(400).json({
+          success: false,
+          message: `${role} photo must be a JPEG of 256 KB or less.`,
+        });
+      }
+    }
 
     // Core validation
     if (req.body.weddingTitle && req.body.weddingTitle.length > 120) {

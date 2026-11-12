@@ -7,6 +7,11 @@ const {
 const { protect } = require("../middleware/authMiddleware");
 
 // GET is public, PUT is protected by admin auth
-router.route("/").get(getWeddingDetails).put(protect, updateWeddingDetails);
+router.route("/").get(getWeddingDetails).put(
+  protect,
+  express.json({ limit: "1mb" }),
+  express.urlencoded({ extended: true }),
+  updateWeddingDetails,
+);
 
 module.exports = router;
